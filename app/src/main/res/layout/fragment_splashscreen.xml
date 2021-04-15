@@ -23,7 +23,7 @@
             android:layout_gravity="center" />
 
         <TextView
-            android:id="@+id/connectionTextView"
+            android:id="@+id/loadingTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="TextView" />

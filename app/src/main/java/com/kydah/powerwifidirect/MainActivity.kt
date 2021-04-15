@@ -10,6 +10,11 @@ import androidx.navigation.ui.setupWithNavController
 
 class MainActivity : AppCompatActivity() {
 
+    companion object {
+        const val MESSAGE_READ = 0x400 + 1
+        const val MY_HANDLE = 0x400 + 2
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
