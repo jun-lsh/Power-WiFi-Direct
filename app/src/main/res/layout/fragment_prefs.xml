@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".ui.preferences.PreferencesFragment">
 
-    <View
+    <androidx.fragment.app.FragmentContainerView
         android:id="@+id/prefsContainerView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
