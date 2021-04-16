@@ -23,6 +23,7 @@ class ServerNetsock(private var portNumber : Int, private var handler : Handler)
     fun stopServer(){
         running = false
         serverSocket.close()
+        println("Socket server successfully shut down!")
         //this.interrupt()
     }
 

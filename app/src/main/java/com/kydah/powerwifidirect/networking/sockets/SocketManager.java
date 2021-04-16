@@ -57,6 +57,15 @@ public class SocketManager implements Runnable {
         }
     }
 
+    public void closeConnection(){
+        write("close_con".getBytes());
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void write(byte[] buffer) {
 
         new Thread(new Runnable() {
