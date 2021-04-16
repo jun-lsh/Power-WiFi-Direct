@@ -25,6 +25,7 @@ import com.thanosfisherman.wifiutils.WifiUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 
 public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, WifiP2pManager.GroupInfoListener {
@@ -66,8 +67,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
     }
 
 
-
-    public void terminateAP(){
+    public void terminateAP() {
         stopServiceDiscovery();
         unregisterService();
         destroyGroup();
@@ -75,13 +75,14 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
     }
 
     private void createGroup(int attempts) {
-        //wifiP2pManager.removeGroup(wifiP2pChannel, null);
+        wifiP2pManager.removeGroup(wifiP2pChannel, null);
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
         wifiP2pManager.createGroup(wifiP2pChannel, new ActionListener() {
             @Override
             public void onSuccess() {
+        //        timeout(500);
                 System.out.println("Group creation was successful!");
                 localBroadcastManager.sendBroadcast(new Intent("GROUP_CREATION_SUCCESSFUL"));
             }
@@ -89,11 +90,10 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
             @Override
             public void onFailure(int reason) {
                 System.out.println("Group creation was unsuccessful! Trying again... " + reason);
-                if (attempts > 1) {
-                    if (attempts > 3) {
-                        localBroadcastManager.sendBroadcast(new Intent("GROUP_CREATION_STALLED"));
-                        return;
-                    }
+                if (attempts > 3) {
+                    localBroadcastManager.sendBroadcast(new Intent("GROUP_CREATION_STALLED"));
+                    return;
+                } else {
                     WifiUtils.withContext(context).disableWifi();
                     WifiUtils.withContext(context).enableWifi();
                     createGroup(attempts + 1);
@@ -104,7 +104,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
         });
     }
 
-    private void destroyGroup(){
+    private void destroyGroup() {
         wifiP2pManager.removeGroup(wifiP2pChannel, null);
     }
 
@@ -125,6 +125,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
                     @Override
                     public void onSuccess() {
                         System.out.println("Service creation successful!");
+                 //       timeout(500);
                         localBroadcastManager.sendBroadcast(new Intent("SERVICE_CREATION_SUCCESSFUL"));
                         startServiceDiscovery();
                     }
@@ -145,7 +146,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
         });
     }
 
-    private void unregisterService(){
+    private void unregisterService() {
         wifiP2pManager.clearLocalServices(wifiP2pChannel, null);
     }
 
@@ -183,6 +184,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
                 wifiP2pManager.addServiceRequest(wifiP2pChannel, WifiP2pDnsSdServiceRequest.newInstance(), new ActionListener() {
                     @Override
                     public void onSuccess() {
+                      //  timeout(500);
                         System.out.println("addServiceRequest.onSuccess() for requests of type: DnsSdServiceRequest");
                         localBroadcastManager.sendBroadcast(new Intent("SERVICE_REQUEST_ADDED_SUCCESSFULLY"));
                         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -196,20 +198,29 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
                                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                                     return;
                                 }
-                                wifiP2pManager.discoverServices(wifiP2pChannel, new ActionListener() {
+                                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                     @Override
-                                    public void onSuccess() {
-                                        System.out.println("Successfully started service discovery!");
-                                        localBroadcastManager.sendBroadcast(new Intent("SERVICE_DISCOVERY_ADDED_SUCCESSFULLY"));
-                                        new Handler(Looper.getMainLooper()).postDelayed(discoveryRunnable, 10000);
-                                    }
+                                    public void run() {
+                                        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                            return;
+                                        }
+                                        wifiP2pManager.discoverServices(wifiP2pChannel, new ActionListener() {
+                                            @Override
+                                            public void onSuccess() {
+                                                timeout(500);
+                                                System.out.println("Successfully started service discovery!");
+                                                localBroadcastManager.sendBroadcast(new Intent("SERVICE_DISCOVERY_ADDED_SUCCESSFULLY"));
+                                                new Handler(Looper.getMainLooper()).postDelayed(discoveryRunnable, 20000);
+                                            }
 
-                                    @Override
-                                    public void onFailure(int reason) {
-                                        System.out.println("Unsuccessfully started service discovery!");
-                                        localBroadcastManager.sendBroadcast(new Intent("SERVICE_DISCOVERY_ADDED_UNSUCCESSFULLY"));
+                                            @Override
+                                            public void onFailure(int reason) {
+                                                System.out.println("Unsuccessfully started service discovery!");
+                                                localBroadcastManager.sendBroadcast(new Intent("SERVICE_DISCOVERY_ADDED_UNSUCCESSFULLY"));
+                                            }
+                                        });
                                     }
-                                });
+                                }, 1000);
                             }
 
                             @Override
@@ -257,14 +268,24 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
     @SuppressLint("HardwareIds")
     @Override
     public void onGroupInfoAvailable(WifiP2pGroup group) {
-        if(group != null){
+        if(group != null && group.isGroupOwner()){
             thisSSID = group.getNetworkName();
             thisPassphrase = group.getPassphrase();
             thisDeviceID = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
             //putting all the information here as im worried about delay between recordInfo and prelimInfo
+            System.out.println("Spawning service with parameters: " + thisSSID + " " + thisPassphrase);
             registerService(thisSSID + "/-/" + thisDeviceID + "/-/" + portNumber + "/-/" + thisPassphrase);
         }
     }
+
+    private void timeout(int duration){
+        try {
+            TimeUnit.MICROSECONDS.sleep(duration);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     class WifiDirectBroadcastReceiver extends BroadcastReceiver {
 

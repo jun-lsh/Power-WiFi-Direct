@@ -63,6 +63,9 @@ class SplashscreenActivity : AppCompatActivity() {
 
         updateText("Starting up...")
 
+    }
+
+    fun startInit(){
         portNumber = ((0..64329).random() + 1023)
         application.portNumber = portNumber
 
@@ -124,6 +127,8 @@ class SplashscreenActivity : AppCompatActivity() {
                 builder.setOnDismissListener { }
                 builder.show()
             }
+        } else {
+            startInit()
         }
     }
 
@@ -133,6 +138,7 @@ class SplashscreenActivity : AppCompatActivity() {
             PERMISSION_REQUEST_FINE_LOCATION -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     println("permission granted. pawgers...")
+                    startInit()
                 } else {
                     val builder = AlertDialog.Builder(this)
                     builder.setTitle("Location access is required")
