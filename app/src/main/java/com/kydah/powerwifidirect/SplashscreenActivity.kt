@@ -22,7 +22,7 @@ class SplashscreenActivity : AppCompatActivity() {
 
     private lateinit var loadingText : TextView
     private lateinit var accessPoint: SoftAccessPoint
-    private lateinit var serverNetsock: ServerNetsock
+    //private lateinit var serverNetsock: ServerNetsock
 
     private lateinit var intentFilter: IntentFilter
     private lateinit var broadcastReceiver: BroadcastReceiver

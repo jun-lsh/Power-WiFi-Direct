@@ -163,25 +163,28 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
             //
 //            private boolean prelimInfoFound = false;
 //            private boolean recordInfoFound = false;
-            private final Intent broadcastIntent = new Intent("SERVICE_SEARCH_PEER_INFO");
+
 
             @Override
             public void onDnsSdServiceAvailable(String instanceName, String registrationType,
                                                 WifiP2pDevice wifiDirectDevice) {
                 System.out.println("onDnsSdServiceAvailable: instanceName:" + instanceName + ", registrationType: " + registrationType
                         + ", WifiP2pDevice: " + wifiDirectDevice.toString());
-                broadcastIntent.putExtra("INSTANCE_NAME", instanceName);
-                localBroadcastManager.sendBroadcast(broadcastIntent);
 //                if(!prelimInfoFound) {
 //                }
 //                if(recordInfoFound) localBroadcastManager.sendBroadcast(broadcastIntent);
             }
         }, new WifiP2pManager.DnsSdTxtRecordListener() {
-
+            private final Intent broadcastIntent = new Intent("SERVICE_SEARCH_PEER_INFO");
             @Override
             public void onDnsSdTxtRecordAvailable(String fullDomain, Map record, WifiP2pDevice device) {
                 System.out.println("onDnsSdTxtRecordAvailable: fullDomain: " + fullDomain + ", record: " + record.toString()
                         + ", WifiP2pDevice: " + device.toString());
+                broadcastIntent.putExtra("INSTANCE_NAME", fullDomain);
+                broadcastIntent.putExtra("DEVICE_ID", (String) record.get("device_id"));
+                broadcastIntent.putExtra("PORT_NUMBER", (String) record.get("port_number"));
+                broadcastIntent.putExtra("INET_ADDRESS", (String) record.get("ip_address"));
+                localBroadcastManager.sendBroadcast(broadcastIntent);
             }
         });
 //        wifiP2pManager.clearLocalServices(wifiP2pChannel, new ActionListener() {
@@ -284,7 +287,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
             thisDeviceID = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
             //putting all the information here as im worried about delay between recordInfo and prelimInfo
             System.out.println("Spawning service with parameters: " + thisSSID + " " + thisPassphrase);
-            thisInstanceName = thisSSID + "/-/" + thisDeviceID + "/-/" + portNumber + "/-/" + thisPassphrase;
+            thisInstanceName = thisSSID + "/-/" + thisPassphrase + "/-/" + portNumber + "/-/" + thisDeviceID;
             registerService(thisInstanceName, false);
         }
     }
