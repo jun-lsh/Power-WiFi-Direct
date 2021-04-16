@@ -19,6 +19,7 @@ import com.kydah.powerwifidirect.networking.model.AccessPointData
 import com.kydah.powerwifidirect.networking.model.Peer
 import com.kydah.powerwifidirect.networking.sockets.ServerNetsock
 import com.kydah.powerwifidirect.networking.sockets.SocketsHandler
+import com.kydah.powerwifidirect.networking.wifidirect.AccessPointConnection
 
 
 class MainActivity : AppCompatActivity() {
@@ -51,26 +52,30 @@ class MainActivity : AppCompatActivity() {
 
         socketHandler = SocketsHandler(networkViewModel)
 
+        networkViewModel.accessPoint.value = application.accessPoint
+
         networkViewModel.peerList.value = HashSet()
         networkViewModel.serverNetsock.value = ServerNetsock(application.portNumber, socketHandler)
+        networkViewModel.serverNetsock.value!!.startServer()
 
         intentFilter = IntentFilter()
         intentFilter.addAction("SERVICE_SEARCH_PEER_INFO")
+        intentFilter.addAction("CHANGE_TO_CLIENT")
 
-        broadcastReceiver = MainBroadcastReceiver()
+        broadcastReceiver = MainBroadcastReceiver(this)
         LocalBroadcastManager.getInstance(applicationContext).registerReceiver(broadcastReceiver, intentFilter)
 
     }
 
-    inner class MainBroadcastReceiver : BroadcastReceiver() {
+    inner class MainBroadcastReceiver(private var activity: MainActivity) : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when(intent!!.action){
                 "SERVICE_SEARCH_PEER_INFO" -> {
                     val peer = Peer(
-                        intent.getStringExtra("INSTANCE_NAME")!!,
+                        intent.getStringExtra("DEVICE_ID")!!,
                         intent.getStringExtra("PORT_NUMBER")!!
                     )
-                    val tokens = intent.getStringExtra("DEVICE_ID")?.split("/-/")
+                    val tokens = intent.getStringExtra("INSTANCE_NAME")?.split("/-/")
                     val accessPointData = AccessPointData(
                         tokens!![0],
                         tokens[1],
@@ -79,6 +84,15 @@ class MainActivity : AppCompatActivity() {
                     peer.accessPointData = accessPointData
                     networkViewModel.peerList.value!!.add(peer)
                 }
+
+                "CHANGE_TO_CLIENT" -> {
+                    networkViewModel.accessPoint.value!!.terminateAP()
+                    networkViewModel.serverNetsock.value!!.stopServer()
+                    for(peer in networkViewModel.peerList.value!!){
+                        AccessPointConnection(peer, applicationContext, activity, socketHandler).establishConnection()
+                    }
+                }
+
             }
         }
     }

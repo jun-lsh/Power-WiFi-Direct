@@ -117,6 +117,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
     }
 
     private void registerService(String instanceName, boolean runnable) {
+        if(wifiP2pManager == null) return;
         wifiP2pManager.clearLocalServices(wifiP2pChannel, new ActionListener() {
             @Override
             public void onSuccess() {
@@ -136,7 +137,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
                  //       timeout(500);
                         localBroadcastManager.sendBroadcast(new Intent("SERVICE_CREATION_SUCCESSFUL"));
                         if(!runnable) startServiceDiscovery();
-                        new Handler(Looper.getMainLooper()).postDelayed(serviceRunnable, 20000);
+                        new Handler(Looper.getMainLooper()).postDelayed(serviceRunnable, 60000);
                     }
 
                     @Override
@@ -161,6 +162,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
     }
 
     private void startServiceDiscovery() {
+        if(wifiP2pManager == null) return;
         wifiP2pManager.setDnsSdResponseListeners(wifiP2pChannel, new WifiP2pManager.DnsSdServiceResponseListener() {
             //
 //            private boolean prelimInfoFound = false;
@@ -232,7 +234,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
                                         timeout(500);
                                         System.out.println("Successfully started service discovery!");
                                         localBroadcastManager.sendBroadcast(new Intent("SERVICE_DISCOVERY_ADDED_SUCCESSFULLY"));
-                                        new Handler(Looper.getMainLooper()).postDelayed(discoveryRunnable, 20000);
+                                        new Handler(Looper.getMainLooper()).postDelayed(discoveryRunnable, 10000);
                                     }
 
                                     @Override
@@ -315,10 +317,12 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+            if(wifiP2pManager != null){
             if(action.equals(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)){
                 wifiP2pManager.requestConnectionInfo(wifiP2pChannel, that);
             } else if (action.equals(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION)){
                 wifiP2pManager.requestConnectionInfo(wifiP2pChannel, that);
+            }
             }
         }
     }
