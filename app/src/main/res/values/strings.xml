@@ -3,4 +3,7 @@
     <string name="title_home">Home</string>
     <string name="title_search">Search</string>
     <string name="title_prefs">Preferences</string>
+    <string name="clear_search">Clear search</string>
+    <string name="request">Request</string>
+    <string name="go_to_requests_list">Go to requests list</string>
 </resources>
