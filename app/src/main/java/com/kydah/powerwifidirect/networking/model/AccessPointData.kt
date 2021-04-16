@@ -1,4 +1,4 @@
 package com.kydah.powerwifidirect.networking.model
 
-class AccessPointData {
+data class AccessPointData(private var SSID : String, private var passphrase : String, private var inetAddress : String) {
 }
