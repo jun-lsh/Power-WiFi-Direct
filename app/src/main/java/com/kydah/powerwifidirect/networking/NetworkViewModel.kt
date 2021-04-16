@@ -27,7 +27,7 @@ class NetworkViewModel : ViewModel(){
     fun switchMode(){
         if(transmissionMode.value == "Server") {
             transmissionMode.value = "Client"
-
+            startClientCoroutine()
         }
         else {
             transmissionMode.value = "Server"
@@ -37,7 +37,6 @@ class NetworkViewModel : ViewModel(){
     private fun startClientCoroutine(){
         accessPoint.value!!.terminateAP()
         serverNetsock.value!!.stopServer()
-
     }
 
 }

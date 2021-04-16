@@ -112,6 +112,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
     }
 
     private void destroyGroup() {
+        System.out.println("Removed group!");
         wifiP2pManager.removeGroup(wifiP2pChannel, null);
     }
 
@@ -155,6 +156,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
     }
 
     private void unregisterService() {
+        System.out.println("Unregistered service!");
         wifiP2pManager.clearLocalServices(wifiP2pChannel, null);
     }
 
@@ -262,6 +264,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
     }
 
     private void stopServiceDiscovery(){
+        System.out.println("Cleared service requests!");
         wifiP2pManager.clearServiceRequests(wifiP2pChannel, null);
     }
 

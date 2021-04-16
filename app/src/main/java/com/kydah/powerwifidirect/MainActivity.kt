@@ -1,5 +1,6 @@
 package com.kydah.powerwifidirect
 
+
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -17,14 +18,15 @@ import com.kydah.powerwifidirect.networking.NetworkViewModel
 import com.kydah.powerwifidirect.networking.model.AccessPointData
 import com.kydah.powerwifidirect.networking.model.Peer
 import com.kydah.powerwifidirect.networking.sockets.ServerNetsock
-import com.kydah.powerwifidirect.networking.sockets.SocketHandler
+import com.kydah.powerwifidirect.networking.sockets.SocketsHandler
+
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var intentFilter: IntentFilter
     private lateinit var broadcastReceiver: BroadcastReceiver
 
-    private lateinit var socketHandler: SocketHandler
+    private lateinit var socketHandler: SocketsHandler
 
     private val networkViewModel : NetworkViewModel by viewModels()
 
@@ -47,7 +49,7 @@ class MainActivity : AppCompatActivity() {
 
         application = applicationContext as MainApplication
 
-        socketHandler = SocketHandler()
+        socketHandler = SocketsHandler(networkViewModel)
 
         networkViewModel.peerList.value = HashSet()
         networkViewModel.serverNetsock.value = ServerNetsock(application.portNumber, socketHandler)
