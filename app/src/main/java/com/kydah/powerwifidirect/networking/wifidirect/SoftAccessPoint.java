@@ -33,7 +33,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
     private static final String serviceType = "_presence._tcp";
     private WifiP2pManager wifiP2pManager = null;
     private WifiP2pManager.Channel wifiP2pChannel = null;
-    private String thisSSID, thisPassphrase, thisDeviceID, thisInet;
+    private String thisSSID, thisPassphrase, thisDeviceID, thisInet, thisInstanceName;
 
     private int portNumber;
 
@@ -45,6 +45,13 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
         @Override
         public void run() {
             startServiceDiscovery();
+        }
+    };
+
+    private final Runnable serviceRunnable = new Runnable() {
+        @Override
+        public void run() {
+            registerService(thisInstanceName, true);
         }
     };
 
@@ -108,7 +115,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
         wifiP2pManager.removeGroup(wifiP2pChannel, null);
     }
 
-    private void registerService(String instanceName) {
+    private void registerService(String instanceName, boolean runnable) {
         wifiP2pManager.clearLocalServices(wifiP2pChannel, new ActionListener() {
             @Override
             public void onSuccess() {
@@ -127,7 +134,8 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
                         System.out.println("Service creation successful!");
                  //       timeout(500);
                         localBroadcastManager.sendBroadcast(new Intent("SERVICE_CREATION_SUCCESSFUL"));
-                        startServiceDiscovery();
+                        if(!runnable) startServiceDiscovery();
+                        new Handler(Looper.getMainLooper()).postDelayed(serviceRunnable, 20000);
                     }
 
                     @Override
@@ -176,73 +184,75 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
                         + ", WifiP2pDevice: " + device.toString());
             }
         });
-        wifiP2pManager.clearLocalServices(wifiP2pChannel, new ActionListener() {
+//        wifiP2pManager.clearLocalServices(wifiP2pChannel, new ActionListener() {
+//            @Override
+//            public void onSuccess() {
+//                System.out.println("Successfully cleared local services!");
+//                localBroadcastManager.sendBroadcast(new Intent("SERVICE_DISCOVERY_CLEARED_SUCCESSFULLY"));
+//            }
+//
+//            @Override
+//            public void onFailure(int reason) {
+//                System.out.println("Unsuccessfully cleared local services! " + reason);
+//                localBroadcastManager.sendBroadcast(new Intent("SERVICE_DISCOVERY_CLEARED_UNSUCCESSFULLY"));
+//            }
+//        });
+
+        wifiP2pManager.addServiceRequest(wifiP2pChannel, WifiP2pDnsSdServiceRequest.newInstance(), new ActionListener() {
             @Override
             public void onSuccess() {
-                System.out.println("Successfully cleared local services!");
-                localBroadcastManager.sendBroadcast(new Intent("SERVICE_DISCOVERY_CLEARED_SUCCESSFULLY"));
-                wifiP2pManager.addServiceRequest(wifiP2pChannel, WifiP2pDnsSdServiceRequest.newInstance(), new ActionListener() {
+                //  timeout(500);
+                System.out.println("addServiceRequest.onSuccess() for requests of type: DnsSdServiceRequest");
+                localBroadcastManager.sendBroadcast(new Intent("SERVICE_REQUEST_ADDED_SUCCESSFULLY"));
+                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
+                wifiP2pManager.discoverPeers(wifiP2pChannel, new ActionListener() {
                     @Override
                     public void onSuccess() {
-                      //  timeout(500);
-                        System.out.println("addServiceRequest.onSuccess() for requests of type: DnsSdServiceRequest");
-                        localBroadcastManager.sendBroadcast(new Intent("SERVICE_REQUEST_ADDED_SUCCESSFULLY"));
+                        System.out.println("Successfully started peer discovery!");
+                        localBroadcastManager.sendBroadcast(new Intent("PEER_DISCOVERY_ADDED_SUCCESSFULLY"));
                         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                             return;
                         }
-                        wifiP2pManager.discoverPeers(wifiP2pChannel, new ActionListener() {
+                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                             @Override
-                            public void onSuccess() {
-                                System.out.println("Successfully started peer discovery!");
-                                localBroadcastManager.sendBroadcast(new Intent("PEER_DISCOVERY_ADDED_SUCCESSFULLY"));
+                            public void run() {
                                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                                     return;
                                 }
-                                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                wifiP2pManager.discoverServices(wifiP2pChannel, new ActionListener() {
                                     @Override
-                                    public void run() {
-                                        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                                            return;
-                                        }
-                                        wifiP2pManager.discoverServices(wifiP2pChannel, new ActionListener() {
-                                            @Override
-                                            public void onSuccess() {
-                                                timeout(500);
-                                                System.out.println("Successfully started service discovery!");
-                                                localBroadcastManager.sendBroadcast(new Intent("SERVICE_DISCOVERY_ADDED_SUCCESSFULLY"));
-                                                new Handler(Looper.getMainLooper()).postDelayed(discoveryRunnable, 20000);
-                                            }
-
-                                            @Override
-                                            public void onFailure(int reason) {
-                                                System.out.println("Unsuccessfully started service discovery!");
-                                                localBroadcastManager.sendBroadcast(new Intent("SERVICE_DISCOVERY_ADDED_UNSUCCESSFULLY"));
-                                            }
-                                        });
+                                    public void onSuccess() {
+                                        timeout(500);
+                                        System.out.println("Successfully started service discovery!");
+                                        localBroadcastManager.sendBroadcast(new Intent("SERVICE_DISCOVERY_ADDED_SUCCESSFULLY"));
+                                        new Handler(Looper.getMainLooper()).postDelayed(discoveryRunnable, 20000);
                                     }
-                                }, 1000);
-                            }
 
-                            @Override
-                            public void onFailure(int reason) {
-                                System.out.println("Failed to start peer discovery! " + reason);
-                                localBroadcastManager.sendBroadcast(new Intent("PEER_DISCOVERY_ADDED_UNSUCCESSFULLY"));
+                                    @Override
+                                    public void onFailure(int reason) {
+                                        System.out.println("Unsuccessfully started service discovery!");
+                                        localBroadcastManager.sendBroadcast(new Intent("SERVICE_DISCOVERY_ADDED_UNSUCCESSFULLY"));
+                                    }
+                                });
                             }
-                        });
+                        }, 1000);
                     }
 
                     @Override
-                    public void onFailure(int code) {
-                        System.out.println("addServiceRequest.onFailure: " + code);
-                        localBroadcastManager.sendBroadcast(new Intent("SERVICE_REQUEST_ADDED_UNSUCCESSFULLY"));
+                    public void onFailure(int reason) {
+                        System.out.println("Failed to start peer discovery! " + reason);
+                        localBroadcastManager.sendBroadcast(new Intent("PEER_DISCOVERY_ADDED_UNSUCCESSFULLY"));
+                        startServiceDiscovery();
                     }
                 });
             }
 
             @Override
-            public void onFailure(int reason) {
-                System.out.println("Unsuccessfully cleared local services! " + reason);
-                localBroadcastManager.sendBroadcast(new Intent("SERVICE_DISCOVERY_CLEARED_UNSUCCESSFULLY"));
+            public void onFailure(int code) {
+                System.out.println("addServiceRequest.onFailure: " + code);
+                localBroadcastManager.sendBroadcast(new Intent("SERVICE_REQUEST_ADDED_UNSUCCESSFULLY"));
             }
         });
 
@@ -274,7 +284,8 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
             thisDeviceID = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
             //putting all the information here as im worried about delay between recordInfo and prelimInfo
             System.out.println("Spawning service with parameters: " + thisSSID + " " + thisPassphrase);
-            registerService(thisSSID + "/-/" + thisDeviceID + "/-/" + portNumber + "/-/" + thisPassphrase);
+            thisInstanceName = thisSSID + "/-/" + thisDeviceID + "/-/" + portNumber + "/-/" + thisPassphrase;
+            registerService(thisInstanceName, false);
         }
     }
 
