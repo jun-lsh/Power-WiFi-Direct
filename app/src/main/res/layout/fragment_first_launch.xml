@@ -28,6 +28,14 @@
             android:layout_marginVertical="10dp"
             android:text="Do note that these files will be publicly available, so share at your own risk." />
 
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="15dp"
+            android:text="(Note: Download subfolders are not supported!)" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

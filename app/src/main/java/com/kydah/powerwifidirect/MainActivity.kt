@@ -23,6 +23,7 @@ import com.kydah.powerwifidirect.networking.sockets.SocketsHandler
 import com.kydah.powerwifidirect.networking.wifidirect.AccessPointConnection
 import com.kydah.powerwifidirect.networking.wifidirect.SoftAccessPoint
 import com.kydah.powerwifidirect.ui.firstlaunch.FirstLaunchFragment
+import java.io.File
 
 
 class MainActivity : AppCompatActivity() {
@@ -74,6 +75,9 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.let{ it1 ->
                 FirstLaunchFragment().show(it1, "as_pop_up")
             }
+        } else {
+            networkViewModel.downloadsFolder.value = File(sharedPrefs.getString("downloads_folder", ""))
+            networkViewModel.uploadsFolder.value = File(sharedPrefs.getString("uploads_folder", ""))
         }
 
         broadcastReceiver = MainBroadcastReceiver(this)
