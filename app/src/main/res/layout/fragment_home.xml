@@ -1,136 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.home.HomeFragment"
-    android:background="@color/background_color"
-    android:padding="10dp">
+    android:background="@color/background_color">
 
-    <TextView
-        android:id="@+id/currently_serving_textview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/text_color"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-    <androidx.cardview.widget.CardView
-        android:id="@+id/device_info_card_view"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="@style/CardViewTheme"
-        app:layout_constraintTop_toBottomOf="@id/currently_serving_textview"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_height="match_parent"
+        tools:context=".ui.home.HomeFragment"
+        android:padding="10dp">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/currently_serving_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_color"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/device_info_card_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            style="@style/CardViewTheme"
+            app:layout_constraintTop_toBottomOf="@id/currently_serving_textview"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
-            <TextView
-                android:id="@+id/device_name_textview"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                style="@style/TextAppearanceTheme"
-                android:text="Device Name Placeholder"
-                android:textSize="20sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                style="@style/TextAppearanceTheme"
-                android:text="Device address placeholder" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                style="@style/TextAppearanceTheme"
-                android:text="Files hosting" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <TextView
-        android:id="@+id/transfers_textview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        style="@style/TextAppearanceTheme"
-        android:text="@string/transfers"
-        android:textSize="20sp"
-        app:layout_constraintTop_toBottomOf="@id/device_info_card_view"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="3dp"
-        android:background="@color/white"
-        app:layout_constraintTop_toBottomOf="@id/transfers_textview" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/transfers_textview"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:baselineAligned="false">
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:padding="50dp"
-            android:orientation="vertical">
-
-            <ImageButton
-                android:id="@+id/upload_button"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                style="@style/ButtonTheme"
-                android:src="@drawable/ic_upload"
-                android:contentDescription="@string/uploads"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true" />
+                android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                style="@style/TextAppearanceTheme"
-                android:textSize="16sp"
-                android:text="@string/uploads" />
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/device_name_textview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/TextAppearanceTheme"
+                    android:text="Device Name Placeholder"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/TextAppearanceTheme"
+                    android:text="Device address placeholder" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/TextAppearanceTheme"
+                    android:text="Files hosting" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/transfers_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            style="@style/TextAppearanceTheme"
+            android:text="@string/transfers"
+            android:textSize="20sp"
+            app:layout_constraintTop_toBottomOf="@id/device_info_card_view"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="3dp"
+            android:background="@color/white"
+            app:layout_constraintTop_toBottomOf="@id/transfers_textview" />
 
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:id="@+id/upload_download_layout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="50dp"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/transfers_textview"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:baselineAligned="false">
 
-            <ImageButton
-                android:id="@+id/download_button"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                style="@style/ButtonTheme"
-                android:src="@drawable/ic_download"
-                android:contentDescription="@string/downloads"
-                android:scaleType="fitCenter"
-                android:adjustViewBounds="true"/>
+                android:padding="50dp"
+                android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
+                <ImageButton
+                    android:id="@+id/upload_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    style="@style/ButtonTheme"
+                    android:src="@drawable/ic_upload"
+                    android:contentDescription="@string/uploads"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    style="@style/TextAppearanceTheme"
+                    android:textSize="16sp"
+                    android:text="@string/uploads" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                style="@style/TextAppearanceTheme"
-                android:textSize="16sp"
-                android:text="@string/downloads" />
+                android:padding="50dp"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/download_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    style="@style/ButtonTheme"
+                    android:src="@drawable/ic_download"
+                    android:contentDescription="@string/downloads"
+                    android:scaleType="fitCenter"
+                    android:adjustViewBounds="true"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    style="@style/TextAppearanceTheme"
+                    android:textSize="16sp"
+                    android:text="@string/downloads" />
+            </LinearLayout>
+
         </LinearLayout>
 
-    </LinearLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/history_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/upload_download_layout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

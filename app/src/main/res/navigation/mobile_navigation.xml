@@ -13,15 +13,28 @@
         <action
             android:id="@+id/action_navigation_home_to_navigation_uploads"
             app:destination="@id/navigation_uploads" />
+        <action
+            android:id="@+id/action_navigation_home_to_navigation_downloads"
+            app:destination="@id/navigation_downloads" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_uploads"
-        android:name="com.kydah.powerwifidirect.ui.uploads.UploadsFragment"
+        android:name="com.kydah.powerwifidirect.ui.home.UploadsFragment"
         android:label="@string/title_uploads"
-        tools:layout="@layout/fragment_uploads" >
+        tools:layout="@layout/fragment_transfers" >
         <action
             android:id="@+id/action_navigation_uploads_to_navigation_home"
+            app:destination="@id/navigation_home" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_downloads"
+        android:name="com.kydah.powerwifidirect.ui.home.DownloadsFragment"
+        android:label="@string/downloads"
+        tools:layout="@layout/fragment_transfers" >
+        <action
+            android:id="@+id/action_navigation_downloads_to_navigation_home"
             app:destination="@id/navigation_home" />
     </fragment>
 

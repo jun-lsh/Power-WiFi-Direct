@@ -27,14 +27,9 @@ class HomeFragment : Fragment() {
             findNavController().navigate(R.id.action_navigation_home_to_navigation_uploads)
         }
         downloadButton.setOnClickListener {
-            // Go to downloads
+            findNavController().navigate(R.id.action_navigation_home_to_navigation_downloads)
         }
 
         return root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
     }
 }

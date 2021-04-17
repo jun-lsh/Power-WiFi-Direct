@@ -12,6 +12,7 @@
     <string name="downloads">Downloads</string>
     <string name="uploading">Uploading</string>
     <string name="no_files_uploading">No files uploading</string>
+    <string name="no_files_downloading">No files downloading</string>
     <string name="pending">Pending</string>
     <string name="no_pending_files">No pending files</string>
 </resources>

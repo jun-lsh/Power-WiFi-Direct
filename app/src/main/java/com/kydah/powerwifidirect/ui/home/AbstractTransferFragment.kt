@@ -1,22 +1,25 @@
-package com.kydah.powerwifidirect.ui.uploads
+package com.kydah.powerwifidirect.ui.home
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.kydah.powerwifidirect.OnBackPressedListener
 import com.kydah.powerwifidirect.R
 import com.kydah.powerwifidirect.networking.model.PeerFile
 import com.kydah.powerwifidirect.ui.PeerRecyclerAdapter
 
-class UploadsFragment: Fragment() {
+abstract class AbstractTransferFragment: Fragment() {
 
-    private lateinit var uploadingRecyclerView: RecyclerView
+    private lateinit var transferringRecyclerView: RecyclerView
     private lateinit var pendingRecyclerView: RecyclerView
-    private lateinit var noUploadingFilesNotice: TextView
+    private lateinit var noTransferringFilesNotice: TextView
     private lateinit var noPendingFilesNotice: TextView
 
     override fun onCreateView(
@@ -24,16 +27,16 @@ class UploadsFragment: Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val root = inflater.inflate(R.layout.fragment_uploads, container, false)
+        val root = getView(inflater, container)
 
-        // Uploading recycler view init
-        uploadingRecyclerView = root.findViewById(R.id.uploading_recycler_view)
-        uploadingRecyclerView.layoutManager = LinearLayoutManager(context)
-        val uploadingRecyclerAdapter = PeerRecyclerAdapter(true)
-        uploadingRecyclerView.adapter = uploadingRecyclerAdapter
+        // Transferring recycler view init
+        transferringRecyclerView = root.findViewById(R.id.transferring_recycler_view)
+        transferringRecyclerView.layoutManager = LinearLayoutManager(context)
+        val transferringRecyclerAdapter = PeerRecyclerAdapter(true)
+        transferringRecyclerView.adapter = transferringRecyclerAdapter
 
-        noUploadingFilesNotice = root.findViewById(R.id.no_uploading_files)
-        fillUploadingRecyclerAdapter(uploadingRecyclerAdapter)
+        noTransferringFilesNotice = root.findViewById(R.id.no_transferring_files)
+        fillTransferringRecyclerAdapter(transferringRecyclerAdapter)
 
         // Pending recycler view init
         pendingRecyclerView = root.findViewById(R.id.pending_recycler_view)
@@ -47,24 +50,27 @@ class UploadsFragment: Fragment() {
         return root
     }
 
-    private fun fillUploadingRecyclerAdapter(recyclerAdapter: PeerRecyclerAdapter) {
-        val peers = arrayListOf<PeerFile>()
-        // Fill shit here
+    abstract fun getView(
+        inflater: LayoutInflater,
+        container: ViewGroup?
+    ): View
 
-        recyclerAdapter.peers = peers
+    private fun fillTransferringRecyclerAdapter(recyclerAdapter: PeerRecyclerAdapter) {
+        recyclerAdapter.peers = fillTransferringRecyclerAdapter()
         recyclerAdapter.notifyDataSetChanged()
-
 
         // Show no uploading files if recycler adapter is empty
         if (recyclerAdapter.itemCount == 0) {
-            uploadingRecyclerView.visibility = View.GONE
-            noUploadingFilesNotice.visibility = View.VISIBLE
+            transferringRecyclerView.visibility = View.GONE
+            noTransferringFilesNotice.visibility = View.VISIBLE
         }
         else {
-            uploadingRecyclerView.visibility = View.VISIBLE
-            noUploadingFilesNotice.visibility = View.GONE
+            transferringRecyclerView.visibility = View.VISIBLE
+            noTransferringFilesNotice.visibility = View.GONE
         }
     }
+
+    abstract fun fillTransferringRecyclerAdapter(): ArrayList<PeerFile>
 
     private fun fillPendingRecyclerAdapter(recyclerAdapter: PeerRecyclerAdapter) {
         val peers = arrayListOf<PeerFile>()
@@ -84,4 +90,6 @@ class UploadsFragment: Fragment() {
             noPendingFilesNotice.visibility = View.GONE
         }
     }
+
+    abstract fun fillPendingRecyclerAdapter(): ArrayList<PeerFile>
 }
