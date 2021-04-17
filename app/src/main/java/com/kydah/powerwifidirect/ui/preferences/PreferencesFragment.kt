@@ -1,5 +1,6 @@
 package com.kydah.powerwifidirect.ui.preferences
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,8 +9,10 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.kydah.powerwifidirect.R
@@ -37,17 +40,18 @@ class PreferencesFragment : Fragment() {
 
 class PrefFragment : PreferenceFragmentCompat(){
 
-    private val networkViewModel : NetworkViewModel by activityViewModels()
+    private val networkViewModel : NetworkViewModel by viewModels()
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
-        findPreference<Preference>("transmission_mode")?.summary = networkViewModel.transmissionMode.toString()
+        findPreference<Preference>("transmission_mode")?.summary = networkViewModel.transmissionMode.value
     }
 
     override fun onPreferenceTreeClick(preference: Preference?): Boolean {
         when(preference?.key){
             "transmission_mode" -> {
-
+                networkViewModel.switchMode()
+                LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(Intent("CHANGE_TO_CLIENT"))
             }
         }
 

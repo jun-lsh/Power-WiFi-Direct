@@ -2,9 +2,12 @@ package com.kydah.powerwifidirect.networking
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.kydah.powerwifidirect.networking.model.Peer
 import com.kydah.powerwifidirect.networking.sockets.ServerNetsock
+import com.kydah.powerwifidirect.networking.wifidirect.AccessPointConnection
 import com.kydah.powerwifidirect.networking.wifidirect.SoftAccessPoint
+import kotlin.coroutines.coroutineContext
 
 class NetworkViewModel : ViewModel(){
 
@@ -27,16 +30,9 @@ class NetworkViewModel : ViewModel(){
     fun switchMode(){
         if(transmissionMode.value == "Server") {
             transmissionMode.value = "Client"
-            startClientCoroutine()
-        }
-        else {
+        } else {
             transmissionMode.value = "Server"
         }
-    }
-
-    private fun startClientCoroutine(){
-        accessPoint.value!!.terminateAP()
-        serverNetsock.value!!.stopServer()
     }
 
 }

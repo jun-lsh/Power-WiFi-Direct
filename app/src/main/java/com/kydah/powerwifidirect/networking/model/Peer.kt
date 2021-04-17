@@ -1,6 +1,6 @@
 package com.kydah.powerwifidirect.networking.model
 
-data class Peer(private var deviceID : String, private var portNumber : String, var accessPointData: AccessPointData? = null) {
+data class Peer(var deviceID : String, var portNumber : String, var accessPointData: AccessPointData? = null) {
 
     override fun equals(other: Any?): Boolean {
         return deviceID == (other as Peer).deviceID

@@ -77,6 +77,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
     public void terminateAP() {
         stopServiceDiscovery();
         unregisterService();
+        stopPeerDiscovery();
         destroyGroup();
         wifiP2pManager = null;
     }
@@ -86,7 +87,19 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        wifiP2pManager.createGroup(wifiP2pChannel, new ActionListener() {
+        WifiUtils.withContext(context).disableWifi();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        WifiUtils.withContext(context).enableWifi();
+        try {
+            Thread.sleep(2500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        if(wifiP2pManager != null) wifiP2pManager.createGroup(wifiP2pChannel, new ActionListener() {
             @Override
             public void onSuccess() {
         //        timeout(500);
@@ -103,6 +116,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
                 } else {
                     WifiUtils.withContext(context).disableWifi();
                     WifiUtils.withContext(context).enableWifi();
+                    timeout(2500);
                     createGroup(attempts + 1);
                 }
 
@@ -113,10 +127,11 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
 
     private void destroyGroup() {
         System.out.println("Removed group!");
-        wifiP2pManager.removeGroup(wifiP2pChannel, null);
+        if(wifiP2pManager != null) wifiP2pManager.removeGroup(wifiP2pChannel, null);
     }
 
     private void registerService(String instanceName, boolean runnable) {
+        if(wifiP2pManager == null) return;
         wifiP2pManager.clearLocalServices(wifiP2pChannel, new ActionListener() {
             @Override
             public void onSuccess() {
@@ -125,18 +140,20 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
                 record.put("device_id", thisDeviceID);
                 record.put("port_number", String.valueOf(portNumber));
                 record.put("ip_address", thisInet);
+                record.put("passphrase", thisPassphrase);
+                record.put("instance_name", thisSSID);
                 WifiP2pDnsSdServiceInfo serviceInfo = WifiP2pDnsSdServiceInfo.newInstance(instanceName, serviceType, record);
                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     return;
                 }
-                wifiP2pManager.addLocalService(wifiP2pChannel, serviceInfo, new ActionListener() {
+                if(wifiP2pManager != null) wifiP2pManager.addLocalService(wifiP2pChannel, serviceInfo, new ActionListener() {
                     @Override
                     public void onSuccess() {
                         System.out.println("Service creation successful!");
                  //       timeout(500);
                         localBroadcastManager.sendBroadcast(new Intent("SERVICE_CREATION_SUCCESSFUL"));
                         if(!runnable) startServiceDiscovery();
-                        new Handler(Looper.getMainLooper()).postDelayed(serviceRunnable, 20000);
+                        new Handler(Looper.getMainLooper()).postDelayed(serviceRunnable, 60000);
                     }
 
                     @Override
@@ -157,21 +174,24 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
 
     private void unregisterService() {
         System.out.println("Unregistered service!");
-        wifiP2pManager.clearLocalServices(wifiP2pChannel, null);
+        if(wifiP2pManager != null) wifiP2pManager.clearLocalServices(wifiP2pChannel, null);
     }
 
     private void startServiceDiscovery() {
-        wifiP2pManager.setDnsSdResponseListeners(wifiP2pChannel, new WifiP2pManager.DnsSdServiceResponseListener() {
+        if(wifiP2pManager == null) return;
+        if(wifiP2pManager != null) wifiP2pManager.setDnsSdResponseListeners(wifiP2pChannel, new WifiP2pManager.DnsSdServiceResponseListener() {
             //
 //            private boolean prelimInfoFound = false;
 //            private boolean recordInfoFound = false;
 
-
+            private final Intent broadcastIntent = new Intent("SERVICE_SEARCH_PEER_INFO");
             @Override
             public void onDnsSdServiceAvailable(String instanceName, String registrationType,
                                                 WifiP2pDevice wifiDirectDevice) {
                 System.out.println("onDnsSdServiceAvailable: instanceName:" + instanceName + ", registrationType: " + registrationType
                         + ", WifiP2pDevice: " + wifiDirectDevice.toString());
+                broadcastIntent.putExtra("INSTANCE_NAME", instanceName);
+                localBroadcastManager.sendBroadcast(broadcastIntent);
 //                if(!prelimInfoFound) {
 //                }
 //                if(recordInfoFound) localBroadcastManager.sendBroadcast(broadcastIntent);
@@ -182,11 +202,13 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
             public void onDnsSdTxtRecordAvailable(String fullDomain, Map record, WifiP2pDevice device) {
                 System.out.println("onDnsSdTxtRecordAvailable: fullDomain: " + fullDomain + ", record: " + record.toString()
                         + ", WifiP2pDevice: " + device.toString());
-                broadcastIntent.putExtra("INSTANCE_NAME", fullDomain);
-                broadcastIntent.putExtra("DEVICE_ID", (String) record.get("device_id"));
-                broadcastIntent.putExtra("PORT_NUMBER", (String) record.get("port_number"));
-                broadcastIntent.putExtra("INET_ADDRESS", (String) record.get("ip_address"));
-                localBroadcastManager.sendBroadcast(broadcastIntent);
+                //broadcastIntent.putExtra("INSTANCE_NAME", fullDomain);
+//                broadcastIntent.putExtra("DEVICE_ID", (String) record.get("device_id"));
+//                broadcastIntent.putExtra("PORT_NUMBER", (String) record.get("port_number"));
+//                broadcastIntent.putExtra("INET_ADDRESS", (String) record.get("ip_address"));
+//                broadcastIntent.putExtra("PASSPHRASE", (String) record.get("passphrase"));
+//                broadcastIntent.putExtra("INSTANCE_NAME", (String) record.get("instance_name"));
+//                localBroadcastManager.sendBroadcast(broadcastIntent);
             }
         });
 //        wifiP2pManager.clearLocalServices(wifiP2pChannel, new ActionListener() {
@@ -203,7 +225,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
 //            }
 //        });
 
-        wifiP2pManager.addServiceRequest(wifiP2pChannel, WifiP2pDnsSdServiceRequest.newInstance(), new ActionListener() {
+        if(wifiP2pManager != null) wifiP2pManager.addServiceRequest(wifiP2pChannel, WifiP2pDnsSdServiceRequest.newInstance(), new ActionListener() {
             @Override
             public void onSuccess() {
                 //  timeout(500);
@@ -212,7 +234,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     return;
                 }
-                wifiP2pManager.discoverPeers(wifiP2pChannel, new ActionListener() {
+                if(wifiP2pManager != null) wifiP2pManager.discoverPeers(wifiP2pChannel, new ActionListener() {
                     @Override
                     public void onSuccess() {
                         System.out.println("Successfully started peer discovery!");
@@ -226,13 +248,13 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
                                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                                     return;
                                 }
-                                wifiP2pManager.discoverServices(wifiP2pChannel, new ActionListener() {
+                                if(wifiP2pManager != null) wifiP2pManager.discoverServices(wifiP2pChannel, new ActionListener() {
                                     @Override
                                     public void onSuccess() {
                                         timeout(500);
                                         System.out.println("Successfully started service discovery!");
                                         localBroadcastManager.sendBroadcast(new Intent("SERVICE_DISCOVERY_ADDED_SUCCESSFULLY"));
-                                        new Handler(Looper.getMainLooper()).postDelayed(discoveryRunnable, 20000);
+                                        new Handler(Looper.getMainLooper()).postDelayed(discoveryRunnable, 10000);
                                     }
 
                                     @Override
@@ -265,7 +287,12 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
 
     private void stopServiceDiscovery(){
         System.out.println("Cleared service requests!");
-        wifiP2pManager.clearServiceRequests(wifiP2pChannel, null);
+        if(wifiP2pManager != null) wifiP2pManager.clearServiceRequests(wifiP2pChannel, null);
+    }
+
+    private void stopPeerDiscovery(){
+        System.out.println("Cleared peer discovery!");
+        if(wifiP2pManager != null) wifiP2pManager.stopPeerDiscovery(wifiP2pChannel, null);
     }
 
     @Override
@@ -289,8 +316,8 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
             thisPassphrase = group.getPassphrase();
             thisDeviceID = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
             //putting all the information here as im worried about delay between recordInfo and prelimInfo
-            System.out.println("Spawning service with parameters: " + thisSSID + " " + thisPassphrase);
-            thisInstanceName = thisSSID + "/-/" + thisPassphrase + "/-/" + portNumber + "/-/" + thisDeviceID;
+            System.out.println("Spawning service with parameters: " + thisSSID + " " + thisPassphrase + " " + thisInet);
+            thisInstanceName = thisSSID + "/-/" + thisPassphrase + "/-/" + portNumber + "/-/" + thisDeviceID + "/-/" + thisInet;
             registerService(thisInstanceName, false);
         }
     }
@@ -315,10 +342,12 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+            if(wifiP2pManager != null){
             if(action.equals(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)){
                 wifiP2pManager.requestConnectionInfo(wifiP2pChannel, that);
             } else if (action.equals(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION)){
                 wifiP2pManager.requestConnectionInfo(wifiP2pChannel, that);
+            }
             }
         }
     }

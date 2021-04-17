@@ -12,9 +12,9 @@ import android.os.Handler
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.kydah.powerwifidirect.networking.sockets.ServerNetsock
 import com.kydah.powerwifidirect.networking.wifidirect.SoftAccessPoint
 import kotlin.properties.Delegates
+
 
 class SplashscreenActivity : AppCompatActivity() {
 
@@ -57,15 +57,16 @@ class SplashscreenActivity : AppCompatActivity() {
         intentFilter.addAction("SERVICE_DISCOVERY_CLEARED_UNSUCCESSFULLY")
 
         broadcastReceiver = InitializationBroadcastReceiver()
-        LocalBroadcastManager.getInstance(applicationContext).registerReceiver(broadcastReceiver, intentFilter)
-
-        checkPerms()
-
+        LocalBroadcastManager.getInstance(applicationContext).registerReceiver(
+            broadcastReceiver,
+            intentFilter
+        )
         updateText("Starting up...")
+        checkPerms()
 
     }
 
-    fun startInit(){
+    private fun startInit(){
         portNumber = ((0..64329).random() + 1023)
         application.portNumber = portNumber
 
@@ -75,10 +76,10 @@ class SplashscreenActivity : AppCompatActivity() {
         accessPoint.startAP()
     }
 
-    fun startMainActivity(){
+    private fun startMainActivity(){
         LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(broadcastReceiver)
         Handler(mainLooper).postDelayed({
-            val startIntent : Intent = Intent(this, MainActivity::class.java)
+            val startIntent: Intent = Intent(this, MainActivity::class.java)
             startIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
             startActivity(startIntent)
             finish()
@@ -90,35 +91,86 @@ class SplashscreenActivity : AppCompatActivity() {
     inner class InitializationBroadcastReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when(intent!!.action){
-                "GROUP_CREATION_SUCCESSFUL" -> { updateText("Group successfully created...")}
-                "GROUP_CREATION_STALLED" -> { updateText("Group creation failed! Please turn your WiFi off and on again and restart the application.")}
-                "GROUP_CREATION_UNSUCCESSFUL" -> { updateText("Group creation failed... retrying...")}
-                "SERVICE_CREATION_SUCCESSFUL" -> { updateText("Service successfully created...")}
-                "SERVICE_CREATION_UNSUCCESSFUL" -> { updateText("Service creation failed! AMOGUS")}
-                "SERVICE_DISCOVERY_CLEARED_SUCCESSFULLY" -> { updateText("Service discovery flushed...")}
-                "SERVICE_REQUEST_ADDED_SUCCESSFULLY" -> { updateText("Service request added...")}
-                "PEER_DISCOVERY_ADDED_SUCCESSFULLY" -> { updateText("Peer discovery started...")}
+                "GROUP_CREATION_SUCCESSFUL" -> {
+                    updateText("Group successfully created...")
+                }
+                "GROUP_CREATION_STALLED" -> {
+                    updateText("Group creation failed! Please turn your WiFi off and on again and restart the application.")
+                }
+                "GROUP_CREATION_UNSUCCESSFUL" -> {
+                    updateText("Group creation failed... retrying...")
+                }
+                "SERVICE_CREATION_SUCCESSFUL" -> {
+                    updateText("Service successfully created...")
+                }
+                "SERVICE_CREATION_UNSUCCESSFUL" -> {
+                    updateText("Service creation failed! AMOGUS")
+                }
+                "SERVICE_DISCOVERY_CLEARED_SUCCESSFULLY" -> {
+                    updateText("Service discovery flushed...")
+                }
+                "SERVICE_REQUEST_ADDED_SUCCESSFULLY" -> {
+                    updateText("Service request added...")
+                }
+                "PEER_DISCOVERY_ADDED_SUCCESSFULLY" -> {
+                    updateText("Peer discovery started...")
+                }
                 "SERVICE_DISCOVERY_ADDED_SUCCESSFULLY" -> {
                     updateText("Service discovery started...")
                     startMainActivity()
                 }
-                "SERVICE_DISCOVERY_ADDED_UNSUCCESSFULLY" -> { updateText("Service discovery failed! AMOGUS")}
-                "PEER_DISCOVERY_ADDED_UNSUCCESSFULLY" -> { updateText("Peer discovery failed! SUS")}
-                "SERVICE_REQUEST_ADDED_UNSUCCESSFULLY" -> { updateText("Service requesting failed! SUS")}
-                "SERVICE_DISCOVERY_CLEARED_UNSUCCESSFULLY" -> { updateText("Service discovery could not be flushed! AMOGUS")}
+                "SERVICE_DISCOVERY_ADDED_UNSUCCESSFULLY" -> {
+                    updateText("Service discovery failed! AMOGUS")
+                }
+                "PEER_DISCOVERY_ADDED_UNSUCCESSFULLY" -> {
+                    updateText("Peer discovery failed! SUS")
+                }
+                "SERVICE_REQUEST_ADDED_UNSUCCESSFULLY" -> {
+                    updateText("Service requesting failed! SUS")
+                }
+                "SERVICE_DISCOVERY_CLEARED_UNSUCCESSFULLY" -> {
+                    updateText("Service discovery could not be flushed! AMOGUS")
+                }
             }
         }
     }
 
-    private fun updateText(text : String){
+    private fun updateText(text: String){
         loadingText.text = text
     }
 
+    private fun isWifiDirectSupported(): Boolean {
+        val pm = this.packageManager
+        val features = pm.systemAvailableFeatures
+        for (info in features) {
+            if (info?.name != null && info.name.equals(
+                    "android.hardware.wifi.direct",
+                    ignoreCase = true
+                )
+            ) {
+                return true
+            }
+        }
+        return false
+    }
+
     private fun checkPerms(){
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+        if(!isWifiDirectSupported()){
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle("WiFi Direct is not supported on this device!")
+            builder.setMessage("Your phone does not support WiFi Direct, which this app relies on.")
+            builder.setPositiveButton(android.R.string.ok, null)
+            builder.setOnDismissListener { this.finishAffinity() }
+            builder.show()
+        }
+
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
-                    requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                        PERMISSION_REQUEST_FINE_LOCATION)
+                    requestPermissions(
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+                        PERMISSION_REQUEST_FINE_LOCATION
+                    )
             } else {
                 val builder = AlertDialog.Builder(this)
                 builder.setTitle("Location access is required")
@@ -132,7 +184,11 @@ class SplashscreenActivity : AppCompatActivity() {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when(requestCode){
             PERMISSION_REQUEST_FINE_LOCATION -> {
