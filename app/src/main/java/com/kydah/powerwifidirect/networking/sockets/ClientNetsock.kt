@@ -12,7 +12,7 @@ class ClientNetsock(private var portNumber : Int, private var ipAddress : String
         socket.connect(InetSocketAddress(ipAddress, portNumber), 5000)
 //        var socketHandler : SocketHandler = SocketHandler(socket, true)
 //        socketHandler.start()
-        var chat = SocketManager(socket, handler)
+        var chat = SocketManager(socket, handler, "clt")
         Thread(chat).start()
     }
 

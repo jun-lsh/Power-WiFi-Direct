@@ -37,7 +37,7 @@ class ServerNetsock(private var portNumber : Int, private var handler : Handler)
                 var socket : Socket = serverSocket.accept()
 //                var socketHandler : SocketHandler = SocketHandler(socket, false)
 //                socketHandler.start()
-                var chat = SocketManager(socket, handler)
+                var chat = SocketManager(socket, handler, "svr")
                 Thread(chat).start()
             } catch (e : IOException){
                 e.printStackTrace()
