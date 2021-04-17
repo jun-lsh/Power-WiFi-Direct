@@ -88,6 +88,7 @@
             android:orientation="vertical">
 
             <ImageButton
+                android:id="@+id/upload_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 style="@style/ButtonTheme"
@@ -113,6 +114,7 @@
             android:orientation="vertical">
 
             <ImageButton
+                android:id="@+id/download_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 style="@style/ButtonTheme"

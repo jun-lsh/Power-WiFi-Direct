@@ -5,26 +5,23 @@
     style="@style/CardViewTheme"
     android:layout_margin="5dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/peer_id_textview"
             style="@style/TextAppearanceTheme"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:textSize="20sp" />
 
         <TextView
             android:id="@+id/file_name_textview"
             style="@style/TextAppearanceTheme"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/peer_id_textview" />
+            android:layout_height="wrap_content" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/request_button"
@@ -32,8 +29,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/request"
-            app:layout_constraintTop_toBottomOf="@id/file_name_textview"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:visibility="gone" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <ProgressBar
+            android:id="@+id/uploading_progress_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:indeterminate="false"
+            android:max="100"
+            android:visibility="gone"/>
+
+    </LinearLayout>
 </androidx.cardview.widget.CardView>

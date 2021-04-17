@@ -3,10 +3,15 @@
     <string name="title_home">Home</string>
     <string name="title_search">Search</string>
     <string name="title_prefs">Preferences</string>
+    <string name="title_uploads">Uploads</string>
     <string name="clear_search">Clear search</string>
     <string name="request">Request</string>
     <string name="go_to_requests_list">Go to requests list</string>
     <string name="transfers">Transfers</string>
     <string name="uploads">Uploads</string>
     <string name="downloads">Downloads</string>
+    <string name="uploading">Uploading</string>
+    <string name="no_files_uploading">No files uploading</string>
+    <string name="pending">Pending</string>
+    <string name="no_pending_files">No pending files</string>
 </resources>

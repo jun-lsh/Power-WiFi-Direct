@@ -20,6 +20,7 @@ import com.kydah.powerwifidirect.networking.model.Peer
 import com.kydah.powerwifidirect.networking.sockets.ServerNetsock
 import com.kydah.powerwifidirect.networking.sockets.SocketsHandler
 import com.kydah.powerwifidirect.networking.wifidirect.AccessPointConnection
+import com.kydah.powerwifidirect.networking.wifidirect.SoftAccessPoint
 
 
 class MainActivity : AppCompatActivity() {
@@ -49,9 +50,6 @@ class MainActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         application = applicationContext as MainApplication
-        // Presetting values remember to comment this out pls
-        application.portNumber = 0
-
 
         socketHandler = SocketsHandler(networkViewModel)
 

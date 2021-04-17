@@ -3,13 +3,27 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/navigation_search">
+    app:startDestination="@+id/navigation_home">
 
     <fragment
         android:id="@+id/navigation_home"
         android:name="com.kydah.powerwifidirect.ui.home.HomeFragment"
         android:label="@string/title_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_navigation_home_to_navigation_uploads"
+            app:destination="@id/navigation_uploads" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_uploads"
+        android:name="com.kydah.powerwifidirect.ui.uploads.UploadsFragment"
+        android:label="@string/title_uploads"
+        tools:layout="@layout/fragment_uploads" >
+        <action
+            android:id="@+id/action_navigation_uploads_to_navigation_home"
+            app:destination="@id/navigation_home" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_search"

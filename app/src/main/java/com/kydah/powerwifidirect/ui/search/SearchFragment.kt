@@ -8,16 +8,14 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import me.xdrop.fuzzywuzzy.FuzzySearch
 import com.kydah.powerwifidirect.R
 import com.kydah.powerwifidirect.networking.model.PeerFile
+import com.kydah.powerwifidirect.ui.PeerRecyclerAdapter
 
 private const val SEARCH_CUT_OFF = 50
 class SearchFragment : Fragment() {
