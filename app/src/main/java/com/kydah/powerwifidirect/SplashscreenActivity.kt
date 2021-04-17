@@ -61,10 +61,8 @@ class SplashscreenActivity : AppCompatActivity() {
             broadcastReceiver,
             intentFilter
         )
-
-        checkPerms()
-
         updateText("Starting up...")
+        checkPerms()
 
     }
 
@@ -167,10 +165,10 @@ class SplashscreenActivity : AppCompatActivity() {
             builder.show()
         }
 
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
                     requestPermissions(
-                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
                         PERMISSION_REQUEST_FINE_LOCATION
                     )
             } else {

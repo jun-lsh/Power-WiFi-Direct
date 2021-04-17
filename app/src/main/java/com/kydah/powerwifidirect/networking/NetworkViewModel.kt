@@ -30,8 +30,7 @@ class NetworkViewModel : ViewModel(){
     fun switchMode(){
         if(transmissionMode.value == "Server") {
             transmissionMode.value = "Client"
-        }
-        else {
+        } else {
             transmissionMode.value = "Server"
         }
     }

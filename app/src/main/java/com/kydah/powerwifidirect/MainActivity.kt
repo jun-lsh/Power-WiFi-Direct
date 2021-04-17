@@ -71,15 +71,17 @@ class MainActivity : AppCompatActivity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when(intent!!.action){
                 "SERVICE_SEARCH_PEER_INFO" -> {
-                    val peer = Peer(
-                        intent.getStringExtra("DEVICE_ID")!!,
-                        intent.getStringExtra("PORT_NUMBER")!!
-                    )
+
                     val tokens = intent.getStringExtra("INSTANCE_NAME")?.split("/-/")
+                    val peer = Peer(
+                        tokens!![3],
+                        tokens[2]
+                    )
                     val accessPointData = AccessPointData(
-                        tokens!![0],
+                    //    intent.getStringExtra("INSTANCE_NAME")!!,
+                        tokens[0],
                         tokens[1],
-                        intent.getStringExtra("INET_ADDRESS")!!
+                        tokens[4]
                     )
                     peer.accessPointData = accessPointData
                     networkViewModel.peerList.value!!.add(peer)
