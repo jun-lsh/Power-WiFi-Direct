@@ -23,6 +23,12 @@
     <uses-permission
         android:required="true"
         android:name="android.permission.INTERNET"/>
+    <uses-permission
+        android:required="true"
+        android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission
+        android:required="true"
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
     <application
         android:allowBackup="true"
@@ -38,6 +44,7 @@
         </activity>
         <activity android:name=".SplashscreenActivity"
             android:theme="@style/SplashTheme"
+            android:configChanges="orientation|screenSize"
             >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

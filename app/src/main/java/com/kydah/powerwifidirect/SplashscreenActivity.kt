@@ -117,6 +117,7 @@ class SplashscreenActivity : AppCompatActivity() {
                 }
                 "SERVICE_DISCOVERY_ADDED_SUCCESSFULLY" -> {
                     updateText("Service discovery started...")
+
                     startMainActivity()
                 }
                 "SERVICE_DISCOVERY_ADDED_UNSUCCESSFULLY" -> {

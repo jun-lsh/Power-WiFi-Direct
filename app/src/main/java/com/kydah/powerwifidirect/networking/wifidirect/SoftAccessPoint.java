@@ -70,6 +70,8 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
     }
 
     public void startAP() {
+        wifiP2pManager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
+        wifiP2pChannel = wifiP2pManager.initialize(context, context.getMainLooper(), null);
         createGroup(0);
     }
 
@@ -83,7 +85,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
     }
 
     private void createGroup(int attempts) {
-        wifiP2pManager.removeGroup(wifiP2pChannel, null);
+
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
@@ -95,11 +97,12 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
         }
         WifiUtils.withContext(context).enableWifi();
         try {
-            Thread.sleep(2500);
+            Thread.sleep(3500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        if(wifiP2pManager != null) wifiP2pManager.createGroup(wifiP2pChannel, new ActionListener() {
+        //wifiP2pManager.removeGroup(wifiP2pChannel, null);
+        wifiP2pManager.createGroup(wifiP2pChannel, new ActionListener() {
             @Override
             public void onSuccess() {
         //        timeout(500);
@@ -110,15 +113,13 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
             @Override
             public void onFailure(int reason) {
                 System.out.println("Group creation was unsuccessful! Trying again... " + reason);
-                if (attempts > 3) {
-                    localBroadcastManager.sendBroadcast(new Intent("GROUP_CREATION_STALLED"));
-                    return;
-                } else {
-                    WifiUtils.withContext(context).disableWifi();
-                    WifiUtils.withContext(context).enableWifi();
-                    timeout(2500);
-                    createGroup(attempts + 1);
-                }
+//                if (attempts > 3) {
+//                    localBroadcastManager.sendBroadcast(new Intent("GROUP_CREATION_STALLED"));
+//                    return;
+//                } else {
+//                    timeout(2500);
+//                    createGroup(attempts + 1);
+//                }
 
                 localBroadcastManager.sendBroadcast(new Intent("GROUP_CREATION_UNSUCCESSFUL"));
             }
@@ -261,6 +262,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
                                     public void onFailure(int reason) {
                                         System.out.println("Unsuccessfully started service discovery!");
                                         localBroadcastManager.sendBroadcast(new Intent("SERVICE_DISCOVERY_ADDED_UNSUCCESSFULLY"));
+                                        startServiceDiscovery();
                                     }
                                 });
                             }

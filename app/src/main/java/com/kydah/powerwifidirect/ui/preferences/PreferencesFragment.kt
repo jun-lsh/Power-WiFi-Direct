@@ -44,14 +44,16 @@ class PrefFragment : PreferenceFragmentCompat(){
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
-        findPreference<Preference>("transmission_mode")?.summary = networkViewModel.transmissionMode.value
+        networkViewModel.transmissionMode.observe(viewLifecycleOwner, {
+            findPreference<Preference>("transmission_mode")?.summary = it
+        })
     }
-
     override fun onPreferenceTreeClick(preference: Preference?): Boolean {
         when(preference?.key){
             "transmission_mode" -> {
                 networkViewModel.switchMode()
-                LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(Intent("CHANGE_TO_CLIENT"))
+                if(networkViewModel.transmissionMode.value == "Client") LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(Intent("CHANGE_TO_CLIENT"))
+                else LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(Intent("CHANGE_TO_SERVER"))
             }
         }
 

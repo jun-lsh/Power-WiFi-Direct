@@ -9,6 +9,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,12 +17,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import me.xdrop.fuzzywuzzy.FuzzySearch
 import com.kydah.powerwifidirect.R
+import com.kydah.powerwifidirect.networking.NetworkViewModel
 import com.kydah.powerwifidirect.networking.model.PeerFile
 
 private const val SEARCH_CUT_OFF = 50
 class SearchFragment : Fragment() {
 
     private lateinit var searchViewModel: SearchViewModel
+    private val networkViewModel : NetworkViewModel by viewModels()
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -44,11 +47,10 @@ class SearchFragment : Fragment() {
         val searchButton: ImageButton = root.findViewById(R.id.search_button)
         searchButton.setOnClickListener {
             hideSoftKeyboard(root)
-
             // Search for peer
-            val peerName = searchInput.text.toString()
-            if (peerName.isNotEmpty()) {
-                peerRecyclerAdapter.peers = searchForPeer(peerName, peerRecyclerAdapter.peers)
+            val fileName = searchInput.text.toString()
+            if (fileName.isNotEmpty()) {
+                peerRecyclerAdapter.peers = searchForPeer(fileName, peerRecyclerAdapter.peers)
                 peerRecyclerAdapter.notifyDataSetChanged()
             }
         }
@@ -71,15 +73,15 @@ class SearchFragment : Fragment() {
         imm.hideSoftInputFromWindow(root.windowToken, 0)
     }
 
-    private fun searchForPeer(peerName: String, data: ArrayList<PeerFile>): ArrayList<PeerFile> {
+    private fun searchForPeer(fileName: String, data: ArrayList<PeerFile>): ArrayList<PeerFile> {
         // Get peer name list from peers
         val peerNameList = arrayListOf<String>()
         data.forEach {
-            peerNameList.add(it.peerDeviceId)
+            peerNameList.add(it.filename)
         }
 
         // Sort peer names with cutoff point and create arraylist of sorted peers
-        val sortedPeerNames = FuzzySearch.extractSorted(peerName, peerNameList, SEARCH_CUT_OFF)
+        val sortedPeerNames = FuzzySearch.extractSorted(fileName, peerNameList, SEARCH_CUT_OFF)
         val sortedPeers = arrayListOf<PeerFile>()
 
         sortedPeerNames.forEach {

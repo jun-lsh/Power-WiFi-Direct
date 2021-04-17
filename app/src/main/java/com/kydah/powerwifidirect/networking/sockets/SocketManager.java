@@ -13,9 +13,11 @@ import java.net.Socket;
 public class SocketManager implements Runnable {
     private Socket socket = null;
     private Handler handler;
+    private String side;
 
-    public SocketManager(Socket socket, Handler handler) {
+    public SocketManager(Socket socket, Handler handler, String side) {
         this.socket = socket;
+        this.side = side;
         this.handler = handler;
     }
 
@@ -31,7 +33,12 @@ public class SocketManager implements Runnable {
             oStream = socket.getOutputStream();
             byte[] buffer = new byte[1048576]; //Megabyte buffer
             int bytes;
-            handler.obtainMessage(MainActivity.MY_HANDLE, this).sendToTarget();
+
+            //client/server HELLO
+
+            handler.obtainMessage(MainActivity.GET_OBJ, this).sendToTarget();
+            handler.obtainMessage(MainActivity.HELLO).sendToTarget();
+
 
             while (true) {
                 try {
@@ -41,7 +48,7 @@ public class SocketManager implements Runnable {
                         break;
                     }
 
-                    handler.obtainMessage(MainActivity.MESSAGE_READ,bytes, -1, buffer).sendToTarget();
+                    handler.obtainMessage(MainActivity.MESSAGE_READ, bytes, -1, buffer).sendToTarget();
                 } catch (IOException e) {
 
                 }
@@ -79,6 +86,10 @@ public class SocketManager implements Runnable {
             }
         }).start();
 
+    }
+
+    public String getSide(){
+        return side;
     }
 
 }

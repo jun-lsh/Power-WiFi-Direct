@@ -5,4 +5,16 @@
         android:key="transmission_mode"
         android:title="Current Transmission Mode"
     />
+
+    <Preference
+        android:layout_width="match_parent"
+        android:key="downloads_folder"
+        android:title="Downloads Folder"
+        />
+
+    <Preference
+        android:layout_width="match_parent"
+        android:key="uploads_folder"
+        android:title="Uploads Folder"
+        />
 </PreferenceScreen>

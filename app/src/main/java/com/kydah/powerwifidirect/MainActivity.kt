@@ -14,12 +14,14 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import androidx.preference.PreferenceManager
 import com.kydah.powerwifidirect.networking.NetworkViewModel
 import com.kydah.powerwifidirect.networking.model.AccessPointData
 import com.kydah.powerwifidirect.networking.model.Peer
 import com.kydah.powerwifidirect.networking.sockets.ServerNetsock
 import com.kydah.powerwifidirect.networking.sockets.SocketsHandler
 import com.kydah.powerwifidirect.networking.wifidirect.AccessPointConnection
+import com.kydah.powerwifidirect.ui.firstlaunch.FirstLaunchFragment
 
 
 class MainActivity : AppCompatActivity() {
@@ -36,6 +38,8 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val MESSAGE_READ = 0x400 + 1
         const val MY_HANDLE = 0x400 + 2
+        const val HELLO = 0x400 + 3
+        const val GET_OBJ = 0x400 + 4
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +54,7 @@ class MainActivity : AppCompatActivity() {
 
         application = applicationContext as MainApplication
 
-        socketHandler = SocketsHandler(networkViewModel)
+        socketHandler = SocketsHandler(networkViewModel, applicationContext)
 
         networkViewModel.accessPoint.value = application.accessPoint
 
@@ -61,6 +65,15 @@ class MainActivity : AppCompatActivity() {
         intentFilter = IntentFilter()
         intentFilter.addAction("SERVICE_SEARCH_PEER_INFO")
         intentFilter.addAction("CHANGE_TO_CLIENT")
+        intentFilter.addAction("CHANGE_TO_SERVER")
+
+        val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        if(!sharedPrefs.getBoolean("set_folders", false)){
+            println("first launch!")
+            supportFragmentManager.let{ it1 ->
+                FirstLaunchFragment().show(it1, "as_pop_up")
+            }
+        }
 
         broadcastReceiver = MainBroadcastReceiver(this)
         LocalBroadcastManager.getInstance(applicationContext).registerReceiver(broadcastReceiver, intentFilter)
@@ -93,6 +106,12 @@ class MainActivity : AppCompatActivity() {
                     for(peer in networkViewModel.peerList.value!!){
                         AccessPointConnection(peer, applicationContext, activity, socketHandler).establishConnection()
                     }
+                }
+
+                "CHANGE_TO_SERVER" -> {
+                    networkViewModel.accessPoint.value!!.startAP()
+                    networkViewModel.serverNetsock.value!!.startServer()
+
                 }
 
             }

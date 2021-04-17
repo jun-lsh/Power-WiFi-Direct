@@ -107,10 +107,11 @@ class AccessPointConnection(private var peer: Peer, private var context : Contex
             if(intent!!.action == ConnectivityManager.CONNECTIVITY_ACTION){
                 val cm = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
                 val networkInfo = cm.activeNetworkInfo
-                if(networkInfo!!.type == ConnectivityManager.TYPE_WIFI && networkInfo.isConnected){
+                if(networkInfo != null){
+                if(networkInfo.type == ConnectivityManager.TYPE_WIFI && networkInfo.isConnected){
                     println("Successfully connected to " + wifiManager.connectionInfo.ssid)
                     createClientSocket()
-                }
+                }}
             } else if (intent.action.equals(WifiManager.WIFI_STATE_CHANGED_ACTION, ignoreCase = true)){
                 val wifiState = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN)
                 if(wifiState == WifiManager.WIFI_STATE_DISABLED){
