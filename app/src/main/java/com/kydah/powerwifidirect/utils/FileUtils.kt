@@ -19,7 +19,7 @@ class FileUtils {
             if (DocumentsContract.isDocumentUri(context, uri)) {
                 // ExternalStorageProvider
                 if (isExternalStorageDocument(uri)) {
-                    val docId = DocumentsContract.getDocumentId(uri)
+                    val docId = DocumentsContract.getTreeDocumentId(uri)
                     val split = docId.split(":").toTypedArray()
                     val type = split[0]
                     if ("primary".equals(type, ignoreCase = true)) {
@@ -28,14 +28,15 @@ class FileUtils {
 
                     // TODO handle non-primary volumes
                 } else if (isDownloadsDocument(uri)) {
-                    val id = DocumentsContract.getDocumentId(uri)
-                    val contentUri: Uri = ContentUris.withAppendedId(
-                        Uri.parse("content://downloads/public_downloads"),
-                        java.lang.Long.valueOf(id)
-                    )
-                    return context?.let { getDataColumn(it, contentUri, null, null) }
+                    val id = DocumentsContract.getTreeDocumentId(uri)
+//                    val contentUri: Uri = ContentUris.withAppendedId(
+//                        Uri.parse("content://downloads/public_downloads"),
+//                        java.lang.Long.valueOf(id)
+//                    )
+//                    return context?.let { getDataColumn(it, contentUri, null, null) }
+                    return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
                 } else if (isMediaDocument(uri)) {
-                    val docId = DocumentsContract.getDocumentId(uri)
+                    val docId = DocumentsContract.getTreeDocumentId(uri)
                     val split = docId.split(":").toTypedArray()
                     val type = split[0]
                     var contentUri: Uri? = null
