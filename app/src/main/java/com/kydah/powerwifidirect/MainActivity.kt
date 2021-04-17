@@ -48,6 +48,9 @@ class MainActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         application = applicationContext as MainApplication
+        // Presetting values remember to comment this out pls
+        application.portNumber = 0
+
 
         socketHandler = SocketsHandler(networkViewModel)
 
