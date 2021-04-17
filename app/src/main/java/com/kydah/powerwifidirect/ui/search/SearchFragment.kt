@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import android.widget.TextView
@@ -33,7 +34,7 @@ class SearchFragment : Fragment() {
     ): View? {
         val root = inflater.inflate(R.layout.fragment_search, container, false)
 
-        hideSoftKeyboard(root)
+        requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
 
         val peerRecyclerView: RecyclerView = root.findViewById(R.id.peer_recycler_view)
         peerRecyclerView.layoutManager = LinearLayoutManager(context)

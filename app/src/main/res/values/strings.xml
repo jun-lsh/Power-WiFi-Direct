@@ -6,4 +6,7 @@
     <string name="clear_search">Clear search</string>
     <string name="request">Request</string>
     <string name="go_to_requests_list">Go to requests list</string>
+    <string name="transfers">Transfers</string>
+    <string name="uploads">Uploads</string>
+    <string name="downloads">Downloads</string>
 </resources>
