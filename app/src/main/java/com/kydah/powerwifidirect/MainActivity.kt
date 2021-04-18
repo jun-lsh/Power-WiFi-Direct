@@ -8,10 +8,8 @@ import android.content.IntentFilter
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.findNavController
-import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
@@ -59,32 +57,32 @@ class MainActivity : AppCompatActivity() {
 
 
 
-        socketHandler = SocketsHandler(networkViewModel, applicationContext)
-
-        networkViewModel.accessPoint.value = application.accessPoint
-
-        networkViewModel.peerList.value = HashSet()
-        networkViewModel.serverNetsock.value = ServerNetsock(application.portNumber, socketHandler)
-        networkViewModel.serverNetsock.value!!.startServer()
-
-        intentFilter = IntentFilter()
-        intentFilter.addAction("SERVICE_SEARCH_PEER_INFO")
-        intentFilter.addAction("CHANGE_TO_CLIENT")
-        intentFilter.addAction("CHANGE_TO_SERVER")
-
-        val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-        if(!sharedPrefs.getBoolean("set_folders", false)){
-            println("first launch!")
-            supportFragmentManager.let{ it1 ->
-                FirstLaunchFragment().show(it1, "as_pop_up")
-            }
-        } else {
-            networkViewModel.downloadsFolder.value = File(sharedPrefs.getString("downloads_folder", ""))
-            networkViewModel.uploadsFolder.value = File(sharedPrefs.getString("uploads_folder", ""))
-        }
-
-        broadcastReceiver = MainBroadcastReceiver(this)
-        LocalBroadcastManager.getInstance(applicationContext).registerReceiver(broadcastReceiver, intentFilter)
+//        socketHandler = SocketsHandler(networkViewModel, applicationContext)
+//
+//        networkViewModel.accessPoint.value = application.accessPoint
+//
+//        networkViewModel.peerList.value = HashSet()
+//        networkViewModel.serverNetsock.value = ServerNetsock(application.portNumber, socketHandler)
+//        networkViewModel.serverNetsock.value!!.startServer()
+//
+//        intentFilter = IntentFilter()
+//        intentFilter.addAction("SERVICE_SEARCH_PEER_INFO")
+//        intentFilter.addAction("CHANGE_TO_CLIENT")
+//        intentFilter.addAction("CHANGE_TO_SERVER")
+//
+//        val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+//        if(!sharedPrefs.getBoolean("set_folders", false)){
+//            println("first launch!")
+//            supportFragmentManager.let{ it1 ->
+//                FirstLaunchFragment().show(it1, "as_pop_up")
+//            }
+//        } else {
+//            networkViewModel.downloadsFolder.value = File(sharedPrefs.getString("downloads_folder", ""))
+//            networkViewModel.uploadsFolder.value = File(sharedPrefs.getString("uploads_folder", ""))
+//        }
+//
+//        broadcastReceiver = MainBroadcastReceiver(this)
+//        LocalBroadcastManager.getInstance(applicationContext).registerReceiver(broadcastReceiver, intentFilter)
 
     }
 

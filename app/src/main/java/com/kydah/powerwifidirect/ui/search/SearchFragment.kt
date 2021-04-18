@@ -10,8 +10,10 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
 import me.xdrop.fuzzywuzzy.FuzzySearch
 import com.kydah.powerwifidirect.R
@@ -24,6 +26,7 @@ class SearchFragment : Fragment() {
 
     private lateinit var searchViewModel: SearchViewModel
     private val networkViewModel : NetworkViewModel by viewModels()
+    private var allPeers = arrayListOf<PeerFile>()
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -47,9 +50,9 @@ class SearchFragment : Fragment() {
         searchButton.setOnClickListener {
             hideSoftKeyboard(root)
             // Search for peer
-            val fileName = searchInput.text.toString()
-            if (fileName.isNotEmpty()) {
-                peerRecyclerAdapter.peers = searchForPeer(fileName, peerRecyclerAdapter.peers)
+            val peerName = searchInput.text.toString()
+            if (peerName.isNotEmpty()) {
+                peerRecyclerAdapter.peers = searchForPeer(peerName, allPeers)
                 peerRecyclerAdapter.notifyDataSetChanged()
             }
         }
@@ -60,7 +63,13 @@ class SearchFragment : Fragment() {
             hideSoftKeyboard(root)
 
             searchInput.text = null
-            fillPeerRecyclerAdapter(peerRecyclerAdapter)
+            peerRecyclerAdapter.peers = allPeers
+            peerRecyclerAdapter.notifyDataSetChanged()
+        }
+
+        val receivedFab: FloatingActionButton = root.findViewById(R.id.received_fab)
+        receivedFab.setOnClickListener {
+            findNavController().navigate(R.id.action_navigation_search_to_navigation_received)
         }
 
         return root
@@ -87,12 +96,17 @@ class SearchFragment : Fragment() {
             sortedPeers.add(data[it.index])
         }
 
+
+
         return sortedPeers
     }
 
     private fun fillPeerRecyclerAdapter(recyclerAdapter: PeerRecyclerAdapter){
         val peers = arrayListOf<PeerFile>()
         // Do code for getting peers here
+
+        // This arraylist is for searching
+        allPeers = peers
 
         recyclerAdapter.peers = peers
         recyclerAdapter.notifyDataSetChanged()

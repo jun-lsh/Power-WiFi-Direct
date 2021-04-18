@@ -68,6 +68,12 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            app:layout_constraintTop_toBottomOf="@id/transfers_textview"
+            android:background="@color/white"/>
+
         <LinearLayout
             android:id="@+id/transfer_layout"
             android:layout_width="match_parent"
@@ -129,14 +135,31 @@
                     android:textSize="16sp"
                     android:text="@string/downloads" />
             </LinearLayout>
-
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/history_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            style="@style/TextAppearanceTheme"
+            android:text="@string/history"
+            android:textSize="20sp"
+            app:layout_constraintTop_toBottomOf="@id/transfer_layout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            app:layout_constraintTop_toBottomOf="@id/history_textview"
+            android:background="@color/white"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/history_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@+id/transfer_layout"
+            app:layout_constraintTop_toBottomOf="@+id/history_textview"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -42,7 +42,21 @@
         android:id="@+id/navigation_search"
         android:name="com.kydah.powerwifidirect.ui.search.SearchFragment"
         android:label="@string/title_search"
-        tools:layout="@layout/fragment_search" />
+        tools:layout="@layout/fragment_search">
+        <action
+            android:id="@+id/action_navigation_search_to_navigation_received"
+            app:destination="@id/navigation_received" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_received"
+        android:name="com.kydah.powerwifidirect.ui.search.ReceivedFragment"
+        android:label="@string/received_searches"
+        tools:layout="@layout/fragment_received">
+        <action
+            android:id="@+id/action_navigation_received_to_navigation_search"
+            app:destination="@id/navigation_search" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_prefs"
