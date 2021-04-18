@@ -77,6 +77,7 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
                                             println("received " + tokens[3])
                                             val peerFile = PeerFile(tokens[4], tokens[3])
                                             networkViewModel.fileList.value!!.add(peerFile)
+                                            networkViewModel.fileList.value = networkViewModel.fileList.value!!
                                             //println(networkViewModel.fileList.value!!.size)
                                             //networkViewModel.fileList.postValue(networkViewModel.fileList.value!!)
                                         }

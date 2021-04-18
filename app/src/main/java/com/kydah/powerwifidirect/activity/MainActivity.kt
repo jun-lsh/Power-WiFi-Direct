@@ -4,6 +4,7 @@ package com.kydah.powerwifidirect.activity
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -30,6 +31,7 @@ import com.kydah.powerwifidirect.networking.sockets.ServerNetsock
 import com.kydah.powerwifidirect.networking.sockets.SocketsHandler
 import com.kydah.powerwifidirect.networking.wifidirect.AccessPointConnection
 import com.kydah.powerwifidirect.ui.firstlaunch.FirstLaunchFragment
+import com.kydah.powerwifidirect.utils.NotificationUtils
 import java.io.File
 
 
@@ -54,6 +56,7 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
         const val MY_HANDLE = 0x400 + 2
         const val HELLO = 0x400 + 3
         const val GET_OBJ = 0x400 + 4
+        const val channelId = "com.kydah.powerwifidirect"
     }
 
     @SuppressLint("HardwareIds")
@@ -70,6 +73,12 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
         navView.setupWithNavController(navController)
 
         application = applicationContext as MainApplication
+        NotificationUtils.createNotificationManager(this)
+        NotificationUtils.createNotificationChannel(channelId, "Power: WiFi Direct Notifications",
+                "Notifications for Power", NotificationManager.IMPORTANCE_HIGH)
+        NotificationUtils.pushNotification(69, "Power Persistent Notification", "Current number of peers: 0",
+                applicationContext, R.drawable.ic_baseline_group_24, this, true, true)
+
 
         socketAction = ""
         socketHandler = SocketsHandler(networkViewModel, applicationContext)
@@ -190,7 +199,17 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
                         tokens[4]
                     )
                     peer.accessPointData = accessPointData
+                    if(!networkViewModel.peerList.value!!.contains(peer)){
+                        NotificationUtils.pushNotification(70, "Power: New Peer Detected",
+                                "New peer was detected: " +  peer.deviceID,
+                                applicationContext, R.drawable.ic_baseline_group_24, activity, false, false)
+                    }
+                    networkViewModel.peerList.value!!.remove(peer)
                     networkViewModel.peerList.value!!.add(peer)
+                    networkViewModel.peerList.value = networkViewModel.peerList.value!!
+                    NotificationUtils.pushNotification(69, "Power Persistent Notification",
+                            "Current number of peers: " +  networkViewModel.peerList.value!!.size,
+                            applicationContext, R.drawable.ic_baseline_group_24, activity, true, true)
                 }
 
                 "CLIENT_ACTION" -> {
@@ -199,6 +218,12 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
                         "FILE_REQ_NO_CHANGE" -> {
                             socketHandler.peerlistReq()
                             socketHandler.filelistReq(2)
+                        }
+
+                        "SPECIFIC_FILE_REQ" -> {
+                            val deviceId  = intent.getStringExtra("DEVICE_ID")!!
+                            val fileName = intent.getStringExtra("FILENAME")!!
+                            socketHandler.fileReq(fileName, deviceId)
                         }
                     }
                 }

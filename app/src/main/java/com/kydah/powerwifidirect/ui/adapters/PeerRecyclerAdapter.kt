@@ -1,16 +1,19 @@
-package com.kydah.powerwifidirect.ui
+package com.kydah.powerwifidirect.ui.adapters
 
+import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import com.kydah.powerwifidirect.R
 import com.kydah.powerwifidirect.networking.model.PeerFile
 
-class PeerRecyclerAdapter(private val uploading: Boolean = false): RecyclerView.Adapter<PeerRecyclerAdapter.ViewHolder>() {
+class PeerRecyclerAdapter(private val uploading: Boolean = false, private var context: Context? = null): RecyclerView.Adapter<PeerRecyclerAdapter.ViewHolder>() {
     var peers = arrayListOf<PeerFile>()
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -21,7 +24,13 @@ class PeerRecyclerAdapter(private val uploading: Boolean = false): RecyclerView.
 
         init {
             requestButton.setOnClickListener {
-                // Do ur stuff
+                if(context != null){
+                    val intent = Intent("CLIENT_ACTION")
+                    intent.putExtra("ACTION_TYPE", "SPECIFIC_FILE_REQ")
+                    intent.putExtra("PEER_ID", peerId.text)
+                    intent.putExtra("FILENAME", fileName.text)
+                    LocalBroadcastManager.getInstance(context!!).sendBroadcast(intent)
+                }
             }
         }
     }

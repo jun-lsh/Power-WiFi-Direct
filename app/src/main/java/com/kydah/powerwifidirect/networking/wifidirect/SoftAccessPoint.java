@@ -189,8 +189,8 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
             @Override
             public void onDnsSdServiceAvailable(String instanceName, String registrationType,
                                                 WifiP2pDevice wifiDirectDevice) {
-                System.out.println("onDnsSdServiceAvailable: instanceName:" + instanceName + ", registrationType: " + registrationType
-                        + ", WifiP2pDevice: " + wifiDirectDevice.toString());
+                System.out.println("onDnsSdServiceAvailable: instanceName:" + instanceName); //+ ", registrationType: " + registrationType
+                        //+ ", WifiP2pDevice: " + wifiDirectDevice.toString());
                 broadcastIntent.putExtra("INSTANCE_NAME", instanceName);
                 localBroadcastManager.sendBroadcast(broadcastIntent);
 //                if(!prelimInfoFound) {
@@ -201,8 +201,8 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
             private final Intent broadcastIntent = new Intent("SERVICE_SEARCH_PEER_INFO");
             @Override
             public void onDnsSdTxtRecordAvailable(String fullDomain, Map record, WifiP2pDevice device) {
-                System.out.println("onDnsSdTxtRecordAvailable: fullDomain: " + fullDomain + ", record: " + record.toString()
-                        + ", WifiP2pDevice: " + device.toString());
+//                System.out.println("onDnsSdTxtRecordAvailable: fullDomain: " + fullDomain + ", record: " + record.toString()
+//                        + ", WifiP2pDevice: " + device.toString());
                 //broadcastIntent.putExtra("INSTANCE_NAME", fullDomain);
 //                broadcastIntent.putExtra("DEVICE_ID", (String) record.get("device_id"));
 //                broadcastIntent.putExtra("PORT_NUMBER", (String) record.get("port_number"));

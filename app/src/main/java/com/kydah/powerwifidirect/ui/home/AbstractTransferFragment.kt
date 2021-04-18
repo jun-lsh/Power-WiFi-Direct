@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.kydah.powerwifidirect.R
 import com.kydah.powerwifidirect.networking.model.PeerFile
-import com.kydah.powerwifidirect.ui.PeerRecyclerAdapter
+import com.kydah.powerwifidirect.ui.adapters.PeerRecyclerAdapter
 
 abstract class AbstractTransferFragment: Fragment() {
 

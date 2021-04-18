@@ -118,7 +118,7 @@ public class SocketManager implements Runnable {
                     e.printStackTrace();
                 }
             }
-        }, 1500, TimeUnit.MILLISECONDS);
+        }, 100, TimeUnit.MILLISECONDS);
     }
 
     public String getSide(){

@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.kydah.powerwifidirect.R
 import com.kydah.powerwifidirect.networking.model.PeerFile
-import com.kydah.powerwifidirect.ui.PeerRecyclerAdapter
+import com.kydah.powerwifidirect.ui.adapters.PeerRecyclerAdapter
 
 class ReceivedFragment: Fragment() {
     override fun onCreateView(
@@ -21,7 +21,7 @@ class ReceivedFragment: Fragment() {
 
         val receivedRecyclerView: RecyclerView = root.findViewById(R.id.received_recycler_view)
         receivedRecyclerView.layoutManager = LinearLayoutManager(context)
-        val receivedRecyclerAdapter = PeerRecyclerAdapter()
+        val receivedRecyclerAdapter = PeerRecyclerAdapter(false, requireContext())
         receivedRecyclerView.adapter = receivedRecyclerAdapter
 
         val peers = arrayListOf<PeerFile>()

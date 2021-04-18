@@ -2,7 +2,6 @@ package com.kydah.powerwifidirect.ui.search
 
 import android.app.Activity
 import android.content.Intent
-import android.opengl.Visibility
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,8 +13,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 
 import androidx.navigation.fragment.findNavController
 import androidx.lifecycle.ViewModelProvider
@@ -28,8 +25,7 @@ import me.xdrop.fuzzywuzzy.FuzzySearch
 import com.kydah.powerwifidirect.R
 import com.kydah.powerwifidirect.networking.NetworkViewModel
 import com.kydah.powerwifidirect.networking.model.PeerFile
-import com.kydah.powerwifidirect.ui.PeerRecyclerAdapter
-import kotlin.properties.Delegates
+import com.kydah.powerwifidirect.ui.adapters.PeerRecyclerAdapter
 
 private const val SEARCH_CUT_OFF = 50
 class SearchFragment : Fragment() {
@@ -40,7 +36,6 @@ class SearchFragment : Fragment() {
     private lateinit var networkViewModel : NetworkViewModel
     private lateinit var searchProgressBar: ProgressBar
     private lateinit var peerRecyclerAdapter: PeerRecyclerAdapter
-    private var searching by Delegates.notNull<Boolean>()
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -55,7 +50,6 @@ class SearchFragment : Fragment() {
         peerRecyclerView.layoutManager = LinearLayoutManager(context)
         peerRecyclerAdapter = PeerRecyclerAdapter()
         peerRecyclerView.adapter = peerRecyclerAdapter
-        searching = false
         fillPeerRecyclerAdapter(peerRecyclerAdapter)
 
         searchProgressBar = root.findViewById(R.id.searchProgress)
@@ -67,11 +61,6 @@ class SearchFragment : Fragment() {
         searchButton.setOnClickListener {
             hideSoftKeyboard(root)
             // Search for peer
-            val peerName = searchInput.text.toString()
-            if (peerName.isNotEmpty()) {
-                peerRecyclerAdapter.peers = searchForPeer(peerName, allPeers)
-                peerRecyclerAdapter.notifyDataSetChanged()
-            }
             val fileName = searchInput.text.toString()
             if (fileName.isNotEmpty()) {
                 peerRecyclerAdapter.peers = searchForPeer(fileName, peerRecyclerAdapter.peers)
@@ -79,7 +68,6 @@ class SearchFragment : Fragment() {
             } else {
                 startFileRequest()
             }
-
         }
 
         val clearButton: ImageButton = root.findViewById(R.id.clear_search_button)
@@ -104,8 +92,7 @@ class SearchFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         networkViewModel.fileList.observe(viewLifecycleOwner, {
-            println(it.size)
-            if(it.isNotEmpty() && searching){
+            if(it.isNotEmpty()){
                 searchProgressBar.visibility = GONE
                 peerRecyclerAdapter.peers = it
                 peerRecyclerAdapter.notifyDataSetChanged()
@@ -120,6 +107,7 @@ class SearchFragment : Fragment() {
     }
 
     private fun startFileRequest(){
+        networkViewModel.fileList.value = ArrayList()
         if(networkViewModel.transmissionMode.value == "Server"){
             networkViewModel.switchMode()
             val intent = Intent("CLIENT_ACTION")
@@ -132,7 +120,6 @@ class SearchFragment : Fragment() {
             LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
         }
         searchProgressBar.visibility = VISIBLE
-        searching = true
     }
 
     private fun searchForPeer(fileName: String, data: ArrayList<PeerFile>): ArrayList<PeerFile> {
@@ -149,8 +136,6 @@ class SearchFragment : Fragment() {
         sortedPeerNames.forEach {
             sortedPeers.add(data[it.index])
         }
-
-
 
         return sortedPeers
 
