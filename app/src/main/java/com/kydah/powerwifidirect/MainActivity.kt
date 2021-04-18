@@ -82,7 +82,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         broadcastReceiver = MainBroadcastReceiver(this)
-//        LocalBroadcastManager.getInstance(applicationContext).registerReceiver(broadcastReceiver, intentFilter)
+        LocalBroadcastManager.getInstance(applicationContext).registerReceiver(broadcastReceiver, intentFilter)
 
     }
 
