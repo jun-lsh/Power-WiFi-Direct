@@ -29,7 +29,7 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
             }
 
             HELLO -> {
-                val helloBuffer = socketManager.side + " " + networkViewModel.deviceId.value
+                val helloBuffer = socketManager.side + " " + networkViewModel.deviceId.value + "\n"
                 socketManager.write(helloBuffer.toByteArray())
                 localBroadcastManager.sendBroadcast(Intent("SOCK_MAN_OPEN"))
             }
@@ -74,8 +74,11 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
                                 "res" -> {
                                     when(tokens[2]){
                                         "f" -> {
+                                            println("received " + tokens[3])
                                             val peerFile = PeerFile(tokens[4], tokens[3])
                                             networkViewModel.fileList.value!!.add(peerFile)
+                                            //println(networkViewModel.fileList.value!!.size)
+                                            //networkViewModel.fileList.postValue(networkViewModel.fileList.value!!)
                                         }
                                     }
                                 }
@@ -92,6 +95,7 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
     }
 
     fun filelistReq(hops : Int){
+        println("called!")
         socketManager.write(("clt req fl $hops\n").toByteArray())
     }
 

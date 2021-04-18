@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -42,7 +43,7 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
 
     private lateinit var socketHandler: SocketsHandler
 
-    private val networkViewModel : NetworkViewModel by viewModels()
+    private lateinit var networkViewModel : NetworkViewModel
 
     private lateinit var application : MainApplication
 
@@ -59,6 +60,7 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        networkViewModel = ViewModelProvider(this).get(NetworkViewModel::class.java)
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
         val navController = findNavController(R.id.nav_host_fragment)
         val appBarConfiguration = AppBarConfiguration(setOf(

@@ -17,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
@@ -39,7 +40,7 @@ class FirstLaunchFragment  : DialogFragment(){
     private var ulSet by Delegates.notNull<Boolean>()
     private lateinit var sharedPrefs : SharedPreferences
 
-    private val networkViewModel : NetworkViewModel by viewModels()
+    private val networkViewModel : NetworkViewModel by activityViewModels()
 
     override fun onCreateView(
             inflater: LayoutInflater,
