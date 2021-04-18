@@ -1,6 +1,7 @@
 package com.kydah.powerwifidirect.ui.search
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,7 +10,9 @@ import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
@@ -23,7 +26,7 @@ private const val SEARCH_CUT_OFF = 50
 class SearchFragment : Fragment() {
 
     private lateinit var searchViewModel: SearchViewModel
-    private val networkViewModel : NetworkViewModel by viewModels()
+    private val networkViewModel : NetworkViewModel by activityViewModels()
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -48,10 +51,11 @@ class SearchFragment : Fragment() {
             hideSoftKeyboard(root)
             // Search for peer
             val fileName = searchInput.text.toString()
-            if (fileName.isNotEmpty()) {
-                peerRecyclerAdapter.peers = searchForPeer(fileName, peerRecyclerAdapter.peers)
-                peerRecyclerAdapter.notifyDataSetChanged()
-            }
+//            if (fileName.isNotEmpty()) {
+//                peerRecyclerAdapter.peers = searchForPeer(fileName, peerRecyclerAdapter.peers)
+//                peerRecyclerAdapter.notifyDataSetChanged()
+//            }
+            startFileRequest()
         }
 
         val clearButton: ImageButton = root.findViewById(R.id.clear_search_button)
@@ -73,7 +77,17 @@ class SearchFragment : Fragment() {
     }
 
     private fun startFileRequest(){
-
+        if(networkViewModel.transmissionMode.value == "Server"){
+            networkViewModel.switchMode()
+            val intent = Intent("CLIENT_ACTION")
+            intent.putExtra("ACTION_TYPE", "FILE_REQ_CHANGE")
+            LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
+            LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(Intent("CHANGE_TO_CLIENT"))
+        } else {
+            val intent = Intent("CLIENT_ACTION")
+            intent.putExtra("ACTION_TYPE", "FILE_REQ_NO_CHANGE")
+            LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
+        }
     }
 
     private fun searchForPeer(fileName: String, data: ArrayList<PeerFile>): ArrayList<PeerFile> {

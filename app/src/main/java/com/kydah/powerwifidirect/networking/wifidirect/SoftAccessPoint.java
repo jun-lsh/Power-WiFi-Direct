@@ -332,6 +332,10 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
         }
     }
 
+    public String getSSID(){
+        return thisSSID;
+    }
+
 
     class WifiDirectBroadcastReceiver extends BroadcastReceiver {
 

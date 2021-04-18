@@ -3,16 +3,13 @@ package com.kydah.powerwifidirect.networking.sockets
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import android.provider.Settings
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.kydah.powerwifidirect.MainActivity.Companion.GET_OBJ
-import com.kydah.powerwifidirect.MainActivity.Companion.HELLO
-import com.kydah.powerwifidirect.MainActivity.Companion.MESSAGE_READ
-import com.kydah.powerwifidirect.MainActivity.Companion.MY_HANDLE
+import com.kydah.powerwifidirect.activity.MainActivity.Companion.GET_OBJ
+import com.kydah.powerwifidirect.activity.MainActivity.Companion.HELLO
+import com.kydah.powerwifidirect.activity.MainActivity.Companion.MESSAGE_READ
 import com.kydah.powerwifidirect.networking.NetworkViewModel
 import com.kydah.powerwifidirect.networking.model.Peer
 import com.kydah.powerwifidirect.networking.model.PeerFile
@@ -91,22 +88,22 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
     }
 
     fun peerlistReq(){
-        socketManager.write(("clt req pl").toByteArray())
+        socketManager.write(("clt req pl\n").toByteArray())
     }
 
     fun filelistReq(hops : Int){
-        socketManager.write(("clt req fl $hops").toByteArray())
+        socketManager.write(("clt req fl $hops\n").toByteArray())
     }
 
     fun fileReq(filename: String, deviceId : String){
-        socketManager.write(("clt req f $filename $deviceId").toByteArray())
+        socketManager.write(("clt req f $filename $deviceId\n").toByteArray())
     }
 
     fun fileRes(filename: String, deviceId : String){
-        socketManager.write(("svr res f $filename $deviceId").toByteArray())
+        socketManager.write(("svr res f $filename $deviceId\n").toByteArray())
     }
 
     fun peerRes(peer : Peer){
-        socketManager.write(("svr res p $peer").toByteArray())
+        socketManager.write(("svr res p $peer\n").toByteArray())
     }
 }

@@ -1,9 +1,8 @@
 package com.kydah.powerwifidirect.networking.sockets;
 
 import android.os.Handler;
-import android.util.Log;
 
-import com.kydah.powerwifidirect.MainActivity;
+import com.kydah.powerwifidirect.activity.MainActivity;
 
 import java.io.IOException;
 import java.io.InputStream;
