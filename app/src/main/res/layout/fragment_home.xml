@@ -43,16 +43,18 @@
                     android:textSize="20sp" />
 
                 <TextView
+                    android:id="@+id/device_address_textview"
+                    style="@style/TextAppearanceTheme"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    style="@style/TextAppearanceTheme"
                     android:text="Device address placeholder" />
 
                 <TextView
+                    android:id="@+id/files_hosted_textview"
+                    style="@style/TextAppearanceTheme"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    style="@style/TextAppearanceTheme"
-                    android:text="Files hosting" />
+                    android:text="Currently hosting: " />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -93,21 +95,21 @@
 
                 <ImageButton
                     android:id="@+id/upload_button"
+                    style="@style/ButtonTheme"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    style="@style/ButtonTheme"
-                    android:src="@drawable/ic_upload"
+                    android:adjustViewBounds="true"
                     android:contentDescription="@string/uploads"
                     android:scaleType="fitCenter"
-                    android:adjustViewBounds="true" />
+                    android:src="@drawable/ic_baseline_outbox_24" />
 
                 <TextView
+                    style="@style/TextAppearanceTheme"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    style="@style/TextAppearanceTheme"
-                    android:textSize="16sp"
-                    android:text="@string/uploads" />
+                    android:text="@string/uploads"
+                    android:textSize="13.5sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -119,21 +121,21 @@
 
                 <ImageButton
                     android:id="@+id/download_button"
+                    style="@style/ButtonTheme"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    style="@style/ButtonTheme"
-                    android:src="@drawable/ic_download"
+                    android:adjustViewBounds="true"
                     android:contentDescription="@string/downloads"
                     android:scaleType="fitCenter"
-                    android:adjustViewBounds="true"/>
+                    android:src="@drawable/ic_baseline_download_24" />
 
                 <TextView
+                    style="@style/TextAppearanceTheme"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    style="@style/TextAppearanceTheme"
-                    android:textSize="16sp"
-                    android:text="@string/downloads" />
+                    android:text="@string/downloads"
+                    android:textSize="13.5sp" />
             </LinearLayout>
         </LinearLayout>
 

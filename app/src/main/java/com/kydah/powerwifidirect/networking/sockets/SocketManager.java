@@ -1,9 +1,8 @@
 package com.kydah.powerwifidirect.networking.sockets;
 
 import android.os.Handler;
-import android.util.Log;
 
-import com.kydah.powerwifidirect.MainActivity;
+import com.kydah.powerwifidirect.activity.MainActivity;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,9 +35,9 @@ public class SocketManager implements Runnable {
 
             //client/server HELLO
 
+
             handler.obtainMessage(MainActivity.GET_OBJ, this).sendToTarget();
             handler.obtainMessage(MainActivity.HELLO).sendToTarget();
-
 
             while (true) {
                 try {

@@ -1,4 +1,4 @@
-package com.kydah.powerwifidirect
+package com.kydah.powerwifidirect.activity
 
 import android.Manifest
 import android.app.AlertDialog
@@ -12,11 +12,13 @@ import android.os.Handler
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.kydah.powerwifidirect.MainApplication
+import com.kydah.powerwifidirect.R
 import com.kydah.powerwifidirect.networking.wifidirect.SoftAccessPoint
 import kotlin.properties.Delegates
 
 
-class SplashscreenActivity : AppCompatActivity() {
+class SplashscreenActivity : AppCompatActivity(), RequiresPermissions {
 
     private val PERMISSION_REQUEST_FINE_LOCATION = 1
 
@@ -155,7 +157,7 @@ class SplashscreenActivity : AppCompatActivity() {
         return false
     }
 
-    private fun checkPerms(){
+    override fun checkPerms(){
 
         if(!isWifiDirectSupported()){
             val builder = AlertDialog.Builder(this)
@@ -177,7 +179,7 @@ class SplashscreenActivity : AppCompatActivity() {
                 builder.setTitle("Location access is required")
                 builder.setMessage("Since location access has not been granted, this app will not be able to function at all. Please go to Settings -> Applications -> Permissions and grant location access to this app.")
                 builder.setPositiveButton(android.R.string.ok, null)
-                builder.setOnDismissListener { }
+                builder.setOnDismissListener { this.finishAffinity() }
                 builder.show()
             }
         } else {
@@ -201,7 +203,7 @@ class SplashscreenActivity : AppCompatActivity() {
                     builder.setTitle("Location access is required")
                     builder.setMessage("Since location access has not been granted, this app will not be able to function at all. Don't worry about tracking, your internet need not be connected.")
                     builder.setPositiveButton(android.R.string.ok, null)
-                    builder.setOnDismissListener { }
+                    builder.setOnDismissListener { this.finishAffinity() }
                     builder.show()
                 }
             }

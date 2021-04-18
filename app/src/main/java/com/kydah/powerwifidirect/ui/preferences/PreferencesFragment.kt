@@ -40,14 +40,25 @@ class PreferencesFragment : Fragment() {
 
 class PrefFragment : PreferenceFragmentCompat(){
 
-    private val networkViewModel : NetworkViewModel by viewModels()
+    private val networkViewModel : NetworkViewModel by activityViewModels()
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         networkViewModel.transmissionMode.observe(viewLifecycleOwner, {
             findPreference<Preference>("transmission_mode")?.summary = it
         })
+        networkViewModel.downloadsFolder.observe(viewLifecycleOwner, {
+            findPreference<Preference>("downloads_folder")?.summary = it.canonicalPath
+        })
+        networkViewModel.uploadsFolder.observe(viewLifecycleOwner, {
+            findPreference<Preference>("uploads_folder")?.summary = it.canonicalPath
+        })
     }
+
     override fun onPreferenceTreeClick(preference: Preference?): Boolean {
         when(preference?.key){
             "transmission_mode" -> {

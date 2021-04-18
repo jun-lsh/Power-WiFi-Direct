@@ -9,4 +9,8 @@ data class Peer(var deviceID : String, var portNumber : String, var accessPointD
     override fun hashCode(): Int {
         return deviceID.hashCode()
     }
+
+    override fun toString(): String {
+        return deviceID
+    }
 }
