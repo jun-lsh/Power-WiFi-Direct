@@ -1,11 +1,13 @@
 package com.kydah.powerwifidirect
 
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.viewModels
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
@@ -37,6 +39,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var application : MainApplication
 
+    private lateinit var socketAction : String
+    private lateinit var socketsHandler: SocketsHandler
+
     companion object {
         const val MESSAGE_READ = 0x400 + 1
         const val MY_HANDLE = 0x400 + 2
@@ -44,6 +49,7 @@ class MainActivity : AppCompatActivity() {
         const val GET_OBJ = 0x400 + 4
     }
 
+    @SuppressLint("HardwareIds")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -58,8 +64,11 @@ class MainActivity : AppCompatActivity() {
 
         socketHandler = SocketsHandler(networkViewModel, applicationContext)
 
+        networkViewModel.deviceId.value = Settings.Secure.getString(applicationContext.getContentResolver(), Settings.Secure.ANDROID_ID)
+
         networkViewModel.accessPoint.value = application.accessPoint
 
+        networkViewModel.fileList.value = ArrayList()
         networkViewModel.peerList.value = HashSet()
         networkViewModel.serverNetsock.value = ServerNetsock(application.portNumber, socketHandler)
         networkViewModel.serverNetsock.value!!.startServer()
@@ -105,6 +114,10 @@ class MainActivity : AppCompatActivity() {
                     networkViewModel.peerList.value!!.add(peer)
                 }
 
+                "CLIENT_ACTION" -> {
+                    var socketAction = intent.getStringExtra("ACTION_TYPE")
+                }
+
                 "CHANGE_TO_CLIENT" -> {
                     networkViewModel.accessPoint.value!!.terminateAP()
                     networkViewModel.serverNetsock.value!!.stopServer()
@@ -116,7 +129,15 @@ class MainActivity : AppCompatActivity() {
                 "CHANGE_TO_SERVER" -> {
                     networkViewModel.accessPoint.value!!.startAP()
                     networkViewModel.serverNetsock.value!!.startServer()
+                }
 
+                "SOCK_MAN_OPEN" -> {
+                    when(socketAction){
+                        "FILE_REQ" -> {
+                            socketsHandler.peerlistReq()
+                            socketsHandler.filelistReq(2)
+                        }
+                    }
                 }
 
             }

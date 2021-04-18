@@ -72,6 +72,10 @@ class SearchFragment : Fragment() {
         imm.hideSoftInputFromWindow(root.windowToken, 0)
     }
 
+    private fun startFileRequest(){
+
+    }
+
     private fun searchForPeer(fileName: String, data: ArrayList<PeerFile>): ArrayList<PeerFile> {
         // Get peer name list from peers
         val peerNameList = arrayListOf<String>()
@@ -88,6 +92,7 @@ class SearchFragment : Fragment() {
         }
 
         return sortedPeers
+
     }
 
     private fun fillPeerRecyclerAdapter(recyclerAdapter: PeerRecyclerAdapter){

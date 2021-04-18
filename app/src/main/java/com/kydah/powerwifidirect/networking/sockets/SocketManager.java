@@ -36,9 +36,9 @@ public class SocketManager implements Runnable {
 
             //client/server HELLO
 
+
             handler.obtainMessage(MainActivity.GET_OBJ, this).sendToTarget();
             handler.obtainMessage(MainActivity.HELLO).sendToTarget();
-
 
             while (true) {
                 try {

@@ -19,6 +19,8 @@ import kotlin.properties.Delegates
 class SplashscreenActivity : AppCompatActivity() {
 
     private val PERMISSION_REQUEST_FINE_LOCATION = 1
+    private val PERMISSION_REQUEST_READ_EXTERNAL = 2
+    private val PERMISSION_REQUEST_WRITE_EXTERNAL = 3
 
     private lateinit var loadingText : TextView
     private lateinit var accessPoint: SoftAccessPoint

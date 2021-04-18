@@ -4,6 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.kydah.powerwifidirect.networking.model.Peer
+import com.kydah.powerwifidirect.networking.model.PeerFile
 import com.kydah.powerwifidirect.networking.sockets.ServerNetsock
 import com.kydah.powerwifidirect.networking.sockets.SocketsHandler
 import com.kydah.powerwifidirect.networking.wifidirect.AccessPointConnection
@@ -12,6 +13,10 @@ import java.io.File
 import kotlin.coroutines.coroutineContext
 
 class NetworkViewModel : ViewModel(){
+
+    val deviceId : MutableLiveData<String> by lazy {
+        MutableLiveData<String>()
+    }
 
     val downloadsFolder : MutableLiveData<File> by lazy {
         MutableLiveData<File>()
@@ -35,6 +40,10 @@ class NetworkViewModel : ViewModel(){
 
     val peerList : MutableLiveData<HashSet<Peer>> by lazy {
         MutableLiveData<HashSet<Peer>>()
+    }
+
+    val fileList : MutableLiveData<ArrayList<PeerFile>> by lazy {
+        MutableLiveData<ArrayList<PeerFile>>()
     }
 
     val socketsHandler : MutableLiveData<SocketsHandler> by lazy {
