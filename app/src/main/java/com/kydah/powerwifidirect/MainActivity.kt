@@ -9,21 +9,22 @@ import android.content.IntentFilter
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.viewModels
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.preference.PreferenceManager
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.kydah.powerwifidirect.networking.NetworkViewModel
 import com.kydah.powerwifidirect.networking.model.AccessPointData
 import com.kydah.powerwifidirect.networking.model.Peer
 import com.kydah.powerwifidirect.networking.sockets.ServerNetsock
 import com.kydah.powerwifidirect.networking.sockets.SocketsHandler
 import com.kydah.powerwifidirect.networking.wifidirect.AccessPointConnection
-import com.kydah.powerwifidirect.networking.wifidirect.SoftAccessPoint
 import com.kydah.powerwifidirect.ui.firstlaunch.FirstLaunchFragment
 import java.io.File
 
@@ -61,6 +62,8 @@ class MainActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         application = applicationContext as MainApplication
+
+
 
         socketHandler = SocketsHandler(networkViewModel, applicationContext)
 
@@ -143,5 +146,4 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 }
