@@ -25,6 +25,7 @@ class PeerRecyclerAdapter(private val uploading: Boolean = false, private var co
         init {
             requestButton.setOnClickListener {
                 if(context != null){
+                    println("making file request for: " + fileName.text)
                     val intent = Intent("CLIENT_ACTION")
                     intent.putExtra("ACTION_TYPE", "SPECIFIC_FILE_REQ")
                     intent.putExtra("PEER_ID", peerId.text)

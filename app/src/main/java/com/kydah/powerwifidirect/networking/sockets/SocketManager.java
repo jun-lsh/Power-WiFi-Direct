@@ -8,6 +8,10 @@ import com.kydah.powerwifidirect.activity.MainActivity;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -46,11 +50,6 @@ public class SocketManager implements Runnable {
             oStream = socket.getOutputStream();
 
             DataInputStream dataInputStream = new DataInputStream(iStream);
-
-            byte[] buffer = new byte[1048576]; //Megabyte buffer
-            //int bytes;
-
-            //client/server HELLO
 
 
             handler.obtainMessage(MainActivity.GET_OBJ, this).sendToTarget();
@@ -98,6 +97,41 @@ public class SocketManager implements Runnable {
         }
     }
 
+    public void readFile(File file){
+        write(("svr res wf " + file.getName() + " " + (int) Math.ceil(file.length()/65535.0)).getBytes());
+        byte[] buffer = new byte[MAXMESSSAGELENGTH];
+        try {
+            FileInputStream inputStream = new FileInputStream(file.getAbsolutePath());
+            executor.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+//                    DataOutputStream dataOutputStream = new DataOutputStream(oStream);
+//                    dataOutputStream.writeInt(buffer.length+1);
+//                    dataOutputStream.write(0);
+//                    dataOutputStream.write(buffer);
+//                    dataOutputStream.flush();
+
+                        int rc = inputStream.read(buffer);
+                        while(rc != -1){
+                            if(buffer.length > MAXMESSSAGELENGTH) throw new IOException("message too long");
+                            oStream.write((buffer.length >> BYTESHIFT) & BYTEMASK);
+                            oStream.write(buffer.length & BYTEMASK);
+                            oStream.write(buffer);
+                            oStream.flush();
+                            rc = inputStream.read(buffer);
+                        }
+                        inputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, 100, TimeUnit.MILLISECONDS);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public void write(byte[] buffer) {
         executor.schedule(new Runnable() {
@@ -120,6 +154,7 @@ public class SocketManager implements Runnable {
             }
         }, 100, TimeUnit.MILLISECONDS);
     }
+
 
     public String getSide(){
         return side;

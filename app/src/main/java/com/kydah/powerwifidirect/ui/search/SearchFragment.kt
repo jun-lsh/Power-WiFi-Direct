@@ -48,7 +48,7 @@ class SearchFragment : Fragment() {
         networkViewModel = ViewModelProvider(requireActivity()).get(NetworkViewModel::class.java)
         val peerRecyclerView: RecyclerView = root.findViewById(R.id.peer_recycler_view)
         peerRecyclerView.layoutManager = LinearLayoutManager(context)
-        peerRecyclerAdapter = PeerRecyclerAdapter()
+        peerRecyclerAdapter = PeerRecyclerAdapter(false, context)
         peerRecyclerView.adapter = peerRecyclerAdapter
         fillPeerRecyclerAdapter(peerRecyclerAdapter)
 

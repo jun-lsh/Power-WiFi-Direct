@@ -1,16 +1,37 @@
 package com.kydah.powerwifidirect.utils
 
-import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
+import org.json.JSONObject
 
 
 class FileUtils {
+
     companion object {
+
+        // poor programming practices
+
+        private val fileTypes = this.javaClass.classLoader.getResourceAsStream("raw/filetypes.json").bufferedReader().use { it.readText() }
+        private val reader = JSONObject(fileTypes)
+
+        fun getFileType(filename: String) : String {
+            return reader.getString(getExtension(filename))
+        }
+
+        fun getExtension(fileName: String?): String? {
+            var ch: Char = ""[0]
+            var len: Int = 0
+            if (fileName == null || fileName.length.also { len = it } == 0 || fileName[len - 1].also { ch = it } == '/' || ch == '\\' || //in the case of a directory
+                    ch == '.') //in the case of . or ..
+                return ""
+            val dotInd = fileName.lastIndexOf('.')
+            val sepInd = Math.max(fileName.lastIndexOf('/'), fileName.lastIndexOf('\\'))
+            return if (dotInd <= sepInd) "" else fileName.substring(dotInd + 1).toLowerCase()
+        }
 
         //credit: https://gist.github.com/asifmujteba
 
@@ -53,7 +74,7 @@ class FileUtils {
                     }
                     val selection = "_id=?"
                     val selectionArgs = arrayOf(
-                        split[1]
+                            split[1]
                     )
                     return getDataColumn(context!!, contentUri, selection, selectionArgs)
                 }
@@ -61,10 +82,10 @@ class FileUtils {
 
                 // Return the remote address
                 return if (isGooglePhotosUri(uri)) uri.lastPathSegment else getDataColumn(
-                    context!!,
-                    uri,
-                    null,
-                    null
+                        context!!,
+                        uri,
+                        null,
+                        null
                 )
             } else if ("file".equals(uri.scheme, ignoreCase = true)) {
                 return uri.path
@@ -74,18 +95,18 @@ class FileUtils {
 
 
         private fun getDataColumn(
-            context: Context, uri: Uri?, selection: String?,
-            selectionArgs: Array<String>?
+                context: Context, uri: Uri?, selection: String?,
+                selectionArgs: Array<String>?
         ): String? {
             var cursor: Cursor? = null
             val column = "_data"
             val projection = arrayOf(
-                column
+                    column
             )
             try {
                 cursor = context.contentResolver.query(
-                    uri!!, projection, selection, selectionArgs,
-                    null
+                        uri!!, projection, selection, selectionArgs,
+                        null
                 )
                 if (cursor != null && cursor.moveToFirst()) {
                     val index: Int = cursor.getColumnIndexOrThrow(column)

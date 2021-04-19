@@ -187,16 +187,25 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
             when(intent!!.action){
                 "SERVICE_SEARCH_PEER_INFO" -> {
 
-                    val tokens = intent.getStringExtra("INSTANCE_NAME")?.split("/-/")
-                    val peer = Peer(
-                        tokens!![3],
-                        tokens[2]
-                    )
+                    val tokens = intent.getStringExtra("INSTANCE_NAME")
+//                    val peer = Peer(
+//                        tokens!![3],
+//                        tokens[2]
+//                    )
+                    val peer = Peer (
+                            intent.getStringExtra("DEVICE_ID")!!,
+                            intent.getStringExtra("PORT_NUMBER")!!
+                            )
+//                    val accessPointData = AccessPointData(
+//                    //    intent.getStringExtra("INSTANCE_NAME")!!,
+//                        tokens[0],
+//                        tokens[1],
+//                        tokens[4]
+//                    )
                     val accessPointData = AccessPointData(
-                    //    intent.getStringExtra("INSTANCE_NAME")!!,
-                        tokens[0],
-                        tokens[1],
-                        tokens[4]
+                            intent.getStringExtra("INSTANCE_NAME")!!,
+                            intent.getStringExtra("PASSPHRASE")!!,
+                            intent.getStringExtra("INET_ADDRESS")!!
                     )
                     peer.accessPointData = accessPointData
                     if(!networkViewModel.peerList.value!!.contains(peer)){
@@ -221,7 +230,7 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
                         }
 
                         "SPECIFIC_FILE_REQ" -> {
-                            val deviceId  = intent.getStringExtra("DEVICE_ID")!!
+                            val deviceId  = intent.getStringExtra("PEER_ID")!!
                             val fileName = intent.getStringExtra("FILENAME")!!
                             socketHandler.fileReq(fileName, deviceId)
                         }

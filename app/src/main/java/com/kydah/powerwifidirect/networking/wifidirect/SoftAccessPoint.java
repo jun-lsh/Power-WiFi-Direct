@@ -72,7 +72,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
     public void startAP() {
         wifiP2pManager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
         wifiP2pChannel = wifiP2pManager.initialize(context, context.getMainLooper(), null);
-        createGroup(0);
+        createGroup();
     }
 
 
@@ -84,7 +84,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
         wifiP2pManager = null;
     }
 
-    private void createGroup(int attempts) {
+    private void createGroup() {
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
@@ -191,8 +191,8 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
                                                 WifiP2pDevice wifiDirectDevice) {
                 System.out.println("onDnsSdServiceAvailable: instanceName:" + instanceName); //+ ", registrationType: " + registrationType
                         //+ ", WifiP2pDevice: " + wifiDirectDevice.toString());
-                broadcastIntent.putExtra("INSTANCE_NAME", instanceName);
-                localBroadcastManager.sendBroadcast(broadcastIntent);
+//                broadcastIntent.putExtra("INSTANCE_NAME", instanceName);
+//                localBroadcastManager.sendBroadcast(broadcastIntent);
 //                if(!prelimInfoFound) {
 //                }
 //                if(recordInfoFound) localBroadcastManager.sendBroadcast(broadcastIntent);
@@ -201,15 +201,15 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
             private final Intent broadcastIntent = new Intent("SERVICE_SEARCH_PEER_INFO");
             @Override
             public void onDnsSdTxtRecordAvailable(String fullDomain, Map record, WifiP2pDevice device) {
-//                System.out.println("onDnsSdTxtRecordAvailable: fullDomain: " + fullDomain + ", record: " + record.toString()
+                System.out.println("onDnsSdTxtRecordAvailable: fullDomain: " + fullDomain); //+ ", record: " + record.toString()
 //                        + ", WifiP2pDevice: " + device.toString());
                 //broadcastIntent.putExtra("INSTANCE_NAME", fullDomain);
-//                broadcastIntent.putExtra("DEVICE_ID", (String) record.get("device_id"));
-//                broadcastIntent.putExtra("PORT_NUMBER", (String) record.get("port_number"));
-//                broadcastIntent.putExtra("INET_ADDRESS", (String) record.get("ip_address"));
-//                broadcastIntent.putExtra("PASSPHRASE", (String) record.get("passphrase"));
-//                broadcastIntent.putExtra("INSTANCE_NAME", (String) record.get("instance_name"));
-//                localBroadcastManager.sendBroadcast(broadcastIntent);
+                broadcastIntent.putExtra("DEVICE_ID", (String) record.get("device_id"));
+                broadcastIntent.putExtra("PORT_NUMBER", (String) record.get("port_number"));
+                broadcastIntent.putExtra("INET_ADDRESS", (String) record.get("ip_address"));
+                broadcastIntent.putExtra("PASSPHRASE", (String) record.get("passphrase"));
+                broadcastIntent.putExtra("INSTANCE_NAME", (String) record.get("instance_name"));
+                localBroadcastManager.sendBroadcast(broadcastIntent);
             }
         });
 //        wifiP2pManager.clearLocalServices(wifiP2pChannel, new ActionListener() {
