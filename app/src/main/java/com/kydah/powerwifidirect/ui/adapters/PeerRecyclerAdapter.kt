@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -21,6 +22,7 @@ class PeerRecyclerAdapter(private val uploading: Boolean = false, private var co
         val fileName: TextView = itemView.findViewById(R.id.file_name_textview)
         val requestButton: Button = itemView.findViewById(R.id.request_button)
         val progressBar: ProgressBar = itemView.findViewById(R.id.uploading_progress_bar)
+        val filetypeIcon : ImageView = itemView.findViewById(R.id.filetypeIcon)
 
         init {
             requestButton.setOnClickListener {
@@ -46,6 +48,9 @@ class PeerRecyclerAdapter(private val uploading: Boolean = false, private var co
         val peerFile = peers[position]
         holder.peerId.text = peerFile.peerDeviceId
         holder.fileName.text = peerFile.filename
+
+        val extension = peerFile.filename.substring(peerFile.filename.lastIndexOf("."))
+
 
         if (uploading) {
             holder.requestButton.visibility = View.GONE
