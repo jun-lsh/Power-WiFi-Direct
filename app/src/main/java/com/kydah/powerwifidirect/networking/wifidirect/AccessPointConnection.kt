@@ -60,7 +60,7 @@ class AccessPointConnection(private var peer: Peer, private var context : Contex
 
                         wifiManager.disconnect()
                         wifiManager.enableNetwork(wifiConf.networkId, false)
-                        wifiManager.reconnect()
+                        println(wifiManager.reconnect())
                         val intentFilter = IntentFilter()
                         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION)
                         intentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
@@ -75,7 +75,7 @@ class AccessPointConnection(private var peer: Peer, private var context : Contex
 
         WifiUtils.withContext(context)
                 .connectWith(peer.accessPointData!!.SSID, peer.accessPointData!!.passphrase)
-                .setTimeout(60000)
+                .setTimeout(25000)
                 .onConnectionResult(object : ConnectionSuccessListener {
                     override fun success() {
                         println("Connection successfully established with " + peer.accessPointData!!.SSID)

@@ -65,11 +65,16 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
                     }
                 } else {
                     if(receivedFileChunks == 0) {
-                        receivingFile = false
                         receivedFile.close()
+                        receivingFile = false
                     } else {
+                        println(receivedFileChunks)
                         receivedFile.write(readBuf, 0, readBuf.size)
                         receivedFileChunks--
+                        if(receivedFileChunks == 0){
+                            receivedFile.close()
+                            receivingFile = false
+                        }
                     }
                 }
             }
@@ -142,15 +147,15 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
     }
 
     fun peerlistReq(){
-        socketManager.write(("clt req pl\n").toByteArray())
+        if(!receivingFile) socketManager.write(("clt req pl\n").toByteArray())
     }
 
     fun filelistReq(hops: Int){
-        socketManager.write(("clt req fl $hops\n").toByteArray())
+        if(!receivingFile) socketManager.write(("clt req fl $hops\n").toByteArray())
     }
 
     fun fileReq(filename: String, deviceId: String){
-        socketManager.write(("clt req f $filename $deviceId\n").toByteArray())
+        if(!receivingFile) socketManager.write(("clt req f $filename $deviceId\n").toByteArray())
     }
 
     fun fileRes(filename: String, deviceId: String){

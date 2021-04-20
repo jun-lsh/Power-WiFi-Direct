@@ -225,8 +225,9 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
                     socketAction = intent.getStringExtra("ACTION_TYPE")!!
                     when(socketAction){
                         "FILE_REQ_NO_CHANGE" -> {
-                            socketHandler.peerlistReq()
-                            socketHandler.filelistReq(2)
+                            for(peer in networkViewModel.peerList.value!!){
+                                AccessPointConnection(peer, applicationContext, activity, socketHandler).establishConnection()
+                            }
                         }
 
                         "SPECIFIC_FILE_REQ" -> {

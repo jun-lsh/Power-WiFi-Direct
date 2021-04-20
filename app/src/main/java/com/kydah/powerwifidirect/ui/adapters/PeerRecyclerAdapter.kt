@@ -49,7 +49,7 @@ class PeerRecyclerAdapter(private val uploading: Boolean = false, private var co
         holder.peerId.text = peerFile.peerDeviceId
         holder.fileName.text = peerFile.filename
 
-        val extension = peerFile.filename.substring(peerFile.filename.lastIndexOf("."))
+        //val extension = peerFile.filename.substring(peerFile.filename.lastIndexOf("."))
 
 
         if (uploading) {

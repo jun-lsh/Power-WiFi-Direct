@@ -15,7 +15,7 @@ class FileUtils {
 
         // poor programming practices
 
-        private val fileTypes = this.javaClass.classLoader.getResourceAsStream("raw/filetypes.json").bufferedReader().use { it.readText() }
+        private val fileTypes = this.javaClass.classLoader.getResourceAsStream("res/raw/filetypes.json").bufferedReader().use { it.readText() }
         private val reader = JSONObject(fileTypes)
 
         fun getFileType(filename: String) : String {

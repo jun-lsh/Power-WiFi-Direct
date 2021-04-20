@@ -126,7 +126,7 @@ public class SocketManager implements Runnable {
                         e.printStackTrace();
                     }
                 }
-            }, 100, TimeUnit.MILLISECONDS);
+            }, 1, TimeUnit.MILLISECONDS);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -152,7 +152,7 @@ public class SocketManager implements Runnable {
                     e.printStackTrace();
                 }
             }
-        }, 100, TimeUnit.MILLISECONDS);
+        }, 1, TimeUnit.MILLISECONDS);
     }
 
 

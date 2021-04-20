@@ -4,17 +4,23 @@
         android:layout_width="match_parent"
         android:key="transmission_mode"
         android:title="Current Transmission Mode"
+        android:textColor="@color/text_color"
+        android:layout="@layout/custom_preferences"
     />
 
     <Preference
         android:layout_width="match_parent"
         android:key="downloads_folder"
         android:title="Downloads Folder"
+        android:textColor="@color/text_color"
+        android:layout="@layout/custom_preferences"
         />
 
     <Preference
         android:layout_width="match_parent"
         android:key="uploads_folder"
         android:title="Uploads Folder"
+        android:textColor="@color/text_color"
+        android:layout="@layout/custom_preferences"
         />
 </PreferenceScreen>
