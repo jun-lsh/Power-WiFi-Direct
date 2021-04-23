@@ -239,8 +239,8 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
                 }
 
                 "CHANGE_TO_CLIENT" -> {
-                    networkViewModel.accessPoint.value!!.terminateAP()
-                    networkViewModel.serverNetsock.value!!.stopServer()
+                    //networkViewModel.accessPoint.value!!.terminateAP()
+                    //networkViewModel.serverNetsock.value!!.stopServer()
                     for(peer in networkViewModel.peerList.value!!){
                         AccessPointConnection(peer, applicationContext, activity, socketHandler).establishConnection()
                     }
