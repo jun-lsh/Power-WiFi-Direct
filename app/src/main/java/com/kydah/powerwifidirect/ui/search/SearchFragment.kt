@@ -108,18 +108,18 @@ class SearchFragment : Fragment() {
 
     private fun startFileRequest(){
         networkViewModel.fileList.value = ArrayList()
-        if(networkViewModel.transmissionMode.value == "Server"){
-            networkViewModel.switchMode()
-            val intent = Intent("CLIENT_ACTION")
-            intent.putExtra("ACTION_TYPE", "FILE_REQ_CHANGE")
-            LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
-            LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(Intent("CHANGE_TO_CLIENT"))
-        } else {
-            val intent = Intent("CLIENT_ACTION")
-            intent.putExtra("ACTION_TYPE", "FILE_REQ_NO_CHANGE")
-            LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
-        }
-        searchProgressBar.visibility = VISIBLE
+//        if(networkViewModel.transmissionMode.value == "Server"){
+//            networkViewModel.switchMode()
+//            val intent = Intent("CLIENT_ACTION")
+//            intent.putExtra("ACTION_TYPE", "FILE_REQ_CHANGE")
+//            LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
+//            LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(Intent("CHANGE_TO_CLIENT"))
+//        } else {
+//            val intent = Intent("CLIENT_ACTION")
+//            intent.putExtra("ACTION_TYPE", "FILE_REQ_NO_CHANGE")
+//            LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
+//        }
+        //searchProgressBar.visibility = VISIBLE
     }
 
     private fun searchForPeer(fileName: String, data: ArrayList<PeerFile>): ArrayList<PeerFile> {

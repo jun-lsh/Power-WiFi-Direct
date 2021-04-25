@@ -12,7 +12,6 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -26,7 +25,8 @@ import com.kydah.powerwifidirect.MainApplication
 import com.kydah.powerwifidirect.R
 import com.kydah.powerwifidirect.networking.NetworkViewModel
 import com.kydah.powerwifidirect.networking.model.AccessPointData
-import com.kydah.powerwifidirect.networking.model.Peer
+import com.kydah.powerwifidirect.networking.model.LegacyPeer
+import com.kydah.powerwifidirect.networking.model.PeerFile
 import com.kydah.powerwifidirect.networking.sockets.ServerNetsock
 import com.kydah.powerwifidirect.networking.sockets.SocketsHandler
 import com.kydah.powerwifidirect.networking.wifidirect.AccessPointConnection
@@ -51,6 +51,8 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
 
     private lateinit var socketAction : String
 
+    private var legacyGroupOwner : LegacyPeer? = null
+
     companion object {
         const val MESSAGE_READ = 0x400 + 1
         const val MY_HANDLE = 0x400 + 2
@@ -73,60 +75,62 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
         navView.setupWithNavController(navController)
 
         application = applicationContext as MainApplication
-        NotificationUtils.createNotificationManager(this)
-        NotificationUtils.createNotificationChannel(channelId, "Power: WiFi Direct Notifications",
-                "Notifications for Power", NotificationManager.IMPORTANCE_HIGH)
-        NotificationUtils.pushNotification(69, "Power Persistent Notification", "Current number of peers: 0",
-                applicationContext, R.drawable.ic_baseline_group_24, this, true, true)
+
 
 
         socketAction = ""
-        socketHandler = SocketsHandler(networkViewModel, applicationContext)
+
 
         networkViewModel.deviceId.value = Settings.Secure.getString(applicationContext.getContentResolver(), Settings.Secure.ANDROID_ID)
 
         networkViewModel.accessPoint.value = application.accessPoint
 
         networkViewModel.fileList.value = ArrayList()
-        networkViewModel.peerList.value = HashSet()
-        networkViewModel.serverNetsock.value = ServerNetsock(application.portNumber, socketHandler)
-        networkViewModel.serverNetsock.value!!.startServer()
+
+        for(file in networkViewModel.uploadsFolder.value!!.listFiles()){
+            networkViewModel.fileList.value!!.add(PeerFile(networkViewModel.deviceId.value!!, file.name))
+        }
+
+        networkViewModel.legacyPeerList.value = HashSet()
+
 
         intentFilter = IntentFilter()
         intentFilter.addAction("SERVICE_SEARCH_PEER_INFO")
-        intentFilter.addAction("CHANGE_TO_CLIENT")
-        intentFilter.addAction("CHANGE_TO_SERVER")
         intentFilter.addAction("CLIENT_ACTION")
         intentFilter.addAction("SOCK_MAN_OPEN")
+        networkViewModel.downloadsFolder.value = application.downloadsFolder
+        networkViewModel.uploadsFolder.value = application.uploadsFolder
 
-        val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-        if(!sharedPrefs.getBoolean("set_folders", false)){
-            println("first launch!")
-            checkPerms()
-            //setFolders()
-        } else {
-            networkViewModel.downloadsFolder.value = File(sharedPrefs.getString("downloads_folder", ""))
-            networkViewModel.uploadsFolder.value = File(sharedPrefs.getString("uploads_folder", ""))
-        }
 
         broadcastReceiver = MainBroadcastReceiver(this)
         LocalBroadcastManager.getInstance(applicationContext).registerReceiver(broadcastReceiver, intentFilter)
 
+        legacyGroupOwner = intent.getParcelableExtra<LegacyPeer>("groupOwner")
+        println(legacyGroupOwner != null)
+        if(legacyGroupOwner != null){
+            networkViewModel.transmissionMode.value = "Legacy Client (LC)"
+            socketHandler = SocketsHandler(networkViewModel, applicationContext, "clt")
+            AccessPointConnection(legacyGroupOwner!!, applicationContext, socketHandler).establishConnection()
+        } else {
+            socketHandler = SocketsHandler(networkViewModel, applicationContext, "svr")
+            NotificationUtils.createNotificationManager(this)
+            NotificationUtils.createNotificationChannel(channelId, "Power: WiFi Direct Notifications",
+                    "Notifications for Power", NotificationManager.IMPORTANCE_HIGH)
+            NotificationUtils.pushNotification(69, "Power Persistent Notification", "Current number of peers: 0",
+                    applicationContext, R.drawable.ic_baseline_group_24, this, true, true)
+            networkViewModel.serverNetsock.value = ServerNetsock(application.portNumber, socketHandler)
+            networkViewModel.serverNetsock.value!!.startServer()
+        }
+
     }
 
-    private fun setFolders(){
-        supportFragmentManager.let{ it1 ->
-            FirstLaunchFragment().show(it1, "as_pop_up")
-        }
-    }
 
     override fun checkPerms(){
-
         if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 requestPermissions(
-                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    PERMISSION_REQUEST_WRITE_STORAGE
+                        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                        PERMISSION_REQUEST_WRITE_STORAGE
                 )
             } else {
                 val builder = AlertDialog.Builder(this)
@@ -141,8 +145,8 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
         if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
             if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
                 requestPermissions(
-                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-                    PERMISSION_REQUEST_READ_STORAGE
+                        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                        PERMISSION_REQUEST_READ_STORAGE
                 )
             } else {
                 val builder = AlertDialog.Builder(this)
@@ -154,9 +158,6 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
                 return
             }
         }
-
-        setFolders()
-
     }
 
     override fun onRequestPermissionsResult(
@@ -186,78 +187,34 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
         override fun onReceive(context: Context?, intent: Intent?) {
             when(intent!!.action){
                 "SERVICE_SEARCH_PEER_INFO" -> {
-
-                    val tokens = intent.getStringExtra("INSTANCE_NAME")
-//                    val peer = Peer(
-//                        tokens!![3],
-//                        tokens[2]
-//                    )
-                    val peer = Peer (
-                            intent.getStringExtra("DEVICE_ID")!!,
-                            intent.getStringExtra("PORT_NUMBER")!!
-                            )
-//                    val accessPointData = AccessPointData(
-//                    //    intent.getStringExtra("INSTANCE_NAME")!!,
-//                        tokens[0],
-//                        tokens[1],
-//                        tokens[4]
-//                    )
-                    val accessPointData = AccessPointData(
-                            intent.getStringExtra("INSTANCE_NAME")!!,
-                            intent.getStringExtra("PASSPHRASE")!!,
-                            intent.getStringExtra("INET_ADDRESS")!!
-                    )
-                    peer.accessPointData = accessPointData
-                    if(!networkViewModel.peerList.value!!.contains(peer)){
+                    val peer = intent.getParcelableExtra<LegacyPeer>("PEER_OBJ")!!
+                    //val accessPointData = intent.getParcelableExtra<AccessPointData>("AP_OBJ")
+                    //peer.accessPointData = accessPointData
+                    if(!networkViewModel.legacyPeerList.value!!.contains(peer)){
                         NotificationUtils.pushNotification(70, "Power: New Peer Detected",
                                 "New peer was detected: " +  peer.deviceID,
                                 applicationContext, R.drawable.ic_baseline_group_24, activity, false, false)
                     }
-                    networkViewModel.peerList.value!!.remove(peer)
-                    networkViewModel.peerList.value!!.add(peer)
-                    networkViewModel.peerList.value = networkViewModel.peerList.value!!
+                    networkViewModel.legacyPeerList.value!!.remove(peer)
+                    networkViewModel.legacyPeerList.value!!.add(peer)
+                    networkViewModel.legacyPeerList.value = networkViewModel.legacyPeerList.value!!
                     NotificationUtils.pushNotification(69, "Power Persistent Notification",
-                            "Current number of peers: " +  networkViewModel.peerList.value!!.size,
+                            "Current number of peers: " +  networkViewModel.legacyPeerList.value!!.size,
                             applicationContext, R.drawable.ic_baseline_group_24, activity, true, true)
                 }
 
-                "CLIENT_ACTION" -> {
-                    socketAction = intent.getStringExtra("ACTION_TYPE")!!
-                    when(socketAction){
-                        "FILE_REQ_NO_CHANGE" -> {
-                            for(peer in networkViewModel.peerList.value!!){
-                                AccessPointConnection(peer, applicationContext, activity, socketHandler).establishConnection()
-                            }
-                        }
-
+                "SOCKET_ACTION" -> {
+                    when(intent.getStringExtra("ACTION_TYPE")){
                         "SPECIFIC_FILE_REQ" -> {
-                            val deviceId  = intent.getStringExtra("PEER_ID")!!
-                            val fileName = intent.getStringExtra("FILENAME")!!
-                            socketHandler.fileReq(fileName, deviceId)
+                            socketHandler.fileReq(intent.getStringExtra("FILENAME")!!, intent.getStringExtra("PEER_ID")!!)
                         }
                     }
-                }
-
-                "CHANGE_TO_CLIENT" -> {
-                    //networkViewModel.accessPoint.value!!.terminateAP()
-                    //networkViewModel.serverNetsock.value!!.stopServer()
-                    for(peer in networkViewModel.peerList.value!!){
-                        AccessPointConnection(peer, applicationContext, activity, socketHandler).establishConnection()
-                    }
-                }
-
-                "CHANGE_TO_SERVER" -> {
-                    networkViewModel.accessPoint.value!!.startAP()
-                    networkViewModel.serverNetsock.value!!.startServer()
                 }
 
                 "SOCK_MAN_OPEN" -> {
-                    when(socketAction){
-                        "FILE_REQ_CHANGE" -> {
-                            socketHandler.peerlistReq()
-                            socketHandler.filelistReq(2)
-                        }
-                    }
+//                    networkViewModel.accessPoint.value!!.createGroup()
+                    socketHandler.peerlistReq()
+                    socketHandler.filelistReq(2)
                 }
 
             }

@@ -11,7 +11,7 @@ import com.kydah.powerwifidirect.activity.MainActivity.Companion.GET_OBJ
 import com.kydah.powerwifidirect.activity.MainActivity.Companion.HELLO
 import com.kydah.powerwifidirect.activity.MainActivity.Companion.MESSAGE_READ
 import com.kydah.powerwifidirect.networking.NetworkViewModel
-import com.kydah.powerwifidirect.networking.model.Peer
+import com.kydah.powerwifidirect.networking.model.LegacyPeer
 import com.kydah.powerwifidirect.networking.model.PeerFile
 import java.io.File
 import java.io.FileOutputStream
@@ -19,15 +19,19 @@ import java.nio.ByteBuffer
 import java.nio.CharBuffer
 import java.nio.charset.StandardCharsets
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.experimental.and
+import kotlin.collections.HashMap
 import kotlin.properties.Delegates
 
-class SocketsHandler(private val networkViewModel: NetworkViewModel, private val context: Context) : Handler(Looper.getMainLooper()){
+class SocketsHandler(private val networkViewModel: NetworkViewModel, private val context: Context, private val side: String) : Handler(Looper.getMainLooper()){
 
     private lateinit var socketManager: SocketManager
     private var localBroadcastManager: LocalBroadcastManager = LocalBroadcastManager.getInstance(context)
     private var receivingFile = false
+
+    private var sockets = HashMap<String, SocketManager>()
+
+    private var receivingFileName = ""
+    private var targetSocket : String = ""
 
     private lateinit var receivedFile : FileOutputStream
     private var receivedFileChunks by Delegates.notNull<Int>()
@@ -41,7 +45,7 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
             }
 
             HELLO -> {
-                val helloBuffer = socketManager.side + " " + networkViewModel.deviceId.value + "\n"
+                val helloBuffer = socketManager.side + " dvn " + networkViewModel.deviceId.value + "\n"
                 socketManager.write(helloBuffer.toByteArray())
                 localBroadcastManager.sendBroadcast(Intent("SOCK_MAN_OPEN"))
             }
@@ -64,16 +68,22 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
                         }
                     }
                 } else {
-                    if(receivedFileChunks == 0) {
+                    if (receivedFileChunks == 0) {
                         receivedFile.close()
                         receivingFile = false
                     } else {
                         println(receivedFileChunks)
                         receivedFile.write(readBuf, 0, readBuf.size)
                         receivedFileChunks--
-                        if(receivedFileChunks == 0){
+                        if (receivedFileChunks == 0) {
                             receivedFile.close()
                             receivingFile = false
+                            if(targetSocket != ""){
+                                val file = File(networkViewModel.downloadsFolder.value!!.absolutePath + "/tmp/" + receivingFileName)
+                                sockets[targetSocket]!!.write(("svr res wf " + file.name + " " + Math.ceil(file.length() / 65535.0).toInt()).toByteArray())
+                                sockets[targetSocket]!!.readFile(file)
+                                targetSocket = ""
+                            }
                         }
                     }
                 }
@@ -84,6 +94,80 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
     private fun serverParser(tokens: List<String>){
         if(tokens[0] != "clt") return
         when(tokens[1]){
+
+            "dvn" -> {
+                sockets[tokens[2]] = socketManager
+            }
+
+            "req" -> {
+                when (tokens[2]) {
+                    "fl" -> {
+                        val fileList = networkViewModel.fileList.value!!
+                        for (file in fileList) {
+                            fileRes(file)
+                        }
+                    }
+
+                    "pl" -> {
+                        for (peer in networkViewModel.legacyPeerList.value!!) {
+                            peerRes(peer)
+                        }
+                    }
+
+                    "f" -> {
+                        if (tokens[4] == networkViewModel.deviceId.value!!) {
+                            val fileList = networkViewModel.uploadsFolder.value!!.listFiles()
+                            for (file in fileList) {
+                                if (file.name == tokens[3]) {
+                                    socketManager.write(("svr res wf " + file.name + " " + Math.ceil(file.length() / 65535.0).toInt()).toByteArray())
+                                    socketManager.readFile(file)
+                                }
+                            }
+                        } else {
+                            sockets[tokens[4]]!!.write(("svr req tmpf " + tokens[3] + " " + tokens[5] + "\n").toByteArray())
+                        }
+                    }
+                }
+            }
+            "res" -> {
+                when (tokens[2]) {
+                    "f" -> {
+                        println("received " + tokens[3])
+                        val peerFile = PeerFile(tokens[4], tokens[3])
+                        networkViewModel.fileList.value!!.add(peerFile)
+                        networkViewModel.fileList.value = networkViewModel.fileList.value!!
+                        //println(networkViewModel.fileList.value!!.size)
+                        //networkViewModel.fileList.postValue(networkViewModel.fileList.value!!)
+                    }
+
+                    "wf" -> {
+                        receivingFile = true
+                        receivedFile = FileOutputStream(networkViewModel.downloadsFolder.value!!.absolutePath + "/" + tokens[3])
+                        println(networkViewModel.downloadsFolder.value!!.absolutePath + "/" + tokens[3])
+                        receivedFileChunks = tokens[4].toInt()
+                    }
+
+                    "wtmpf" -> {
+                        receivingFile = true
+                        receivingFileName = tokens[3]
+                        receivedFile = FileOutputStream(networkViewModel.downloadsFolder.value!!.absolutePath + "/tmp/" + tokens[3])
+                        println(networkViewModel.downloadsFolder.value!!.absolutePath + "/" + tokens[3])
+                        receivedFileChunks = tokens[4].toInt()
+                        targetSocket = tokens[5]
+                    }
+                }
+            }
+        }
+    }
+
+    private fun clientParser(tokens: List<String>){
+        if(tokens[0] != "svr") return
+        when(tokens[1]){
+
+            "dvn" -> {
+                sockets[tokens[2]] = socketManager
+            }
+
             "req" -> {
                 when (tokens[2]) {
                     "fl" -> {
@@ -97,7 +181,7 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
                     }
 
                     "pl" -> {
-                        for (peer in networkViewModel.peerList.value!!) {
+                        for (peer in networkViewModel.legacyPeerList.value!!) {
                             peerRes(peer)
                         }
                     }
@@ -106,18 +190,23 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
                         val fileList = networkViewModel.uploadsFolder.value!!.listFiles()
                         for (file in fileList) {
                             if (file.name == tokens[3]) {
+                                socketManager.write(("clt res wf " + file.name + " " + Math.ceil(file.length() / 65535.0).toInt()+ " " + tokens[4]).toByteArray())
+                                        socketManager.readFile(file)
+                            }
+                        }
+                    }
+
+                    "tmpf" -> {
+                        val fileList = networkViewModel.uploadsFolder.value!!.listFiles()
+                        for (file in fileList) {
+                            if (file.name == tokens[3]) {
+                                socketManager.write(("clt res wf " + file.name + " " + Math.ceil(file.length() / 65535.0).toInt()+ " " + tokens[4]).toByteArray())
                                 socketManager.readFile(file)
                             }
                         }
                     }
                 }
             }
-        }
-    }
-
-    private fun clientParser(tokens: List<String>){
-        if(tokens[0] != "svr") return
-        when(tokens[1]){
             "res" -> {
                 when (tokens[2]) {
                     "f" -> {
@@ -147,23 +236,27 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
     }
 
     fun peerlistReq(){
-        if(!receivingFile) socketManager.write(("clt req pl\n").toByteArray())
+        if(!receivingFile) socketManager.write(("$side req pl\n").toByteArray())
     }
 
     fun filelistReq(hops: Int){
-        if(!receivingFile) socketManager.write(("clt req fl $hops\n").toByteArray())
+        if(!receivingFile) socketManager.write(("$side req fl $hops\n").toByteArray())
     }
 
     fun fileReq(filename: String, deviceId: String){
-        if(!receivingFile) socketManager.write(("clt req f $filename $deviceId\n").toByteArray())
+        if(!receivingFile) socketManager.write(("$side req f $filename $deviceId "+ networkViewModel.deviceId.value!! + "\n").toByteArray())
     }
 
     fun fileRes(filename: String, deviceId: String){
-        socketManager.write(("svr res f $filename $deviceId\n").toByteArray())
+        socketManager.write(("$side res f $filename $deviceId\n").toByteArray())
     }
 
-    fun peerRes(peer: Peer){
-        socketManager.write(("svr res p $peer\n").toByteArray())
+    fun fileRes(file: PeerFile){
+        socketManager.write(("$side res f " + file.filename + " " + file.peerDeviceId + "\n").toByteArray())
+    }
+
+    fun peerRes(legacyPeer: LegacyPeer){
+        socketManager.write(("$side res p $legacyPeer\n").toByteArray())
     }
 
 

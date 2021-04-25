@@ -2,25 +2,28 @@ package com.kydah.powerwifidirect.activity
 
 import android.Manifest
 import android.app.AlertDialog
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.preference.PreferenceManager
 import com.kydah.powerwifidirect.MainApplication
 import com.kydah.powerwifidirect.R
+import com.kydah.powerwifidirect.networking.model.LegacyPeer
 import com.kydah.powerwifidirect.networking.wifidirect.SoftAccessPoint
+import com.kydah.powerwifidirect.ui.firstlaunch.FirstLaunchFragment
+import java.io.File
 import kotlin.properties.Delegates
 
 
-class SplashscreenActivity : AppCompatActivity(), RequiresPermissions {
+class SplashscreenActivity : AppCompatActivity(), RequiresPermissions, DialogInterface.OnDismissListener {
 
     private val PERMISSION_REQUEST_FINE_LOCATION = 1
+    private val PERMISSION_REQUEST_READ_STORAGE = 2
+    private val PERMISSION_REQUEST_WRITE_STORAGE = 3
 
     private lateinit var loadingText : TextView
     private lateinit var accessPoint: SoftAccessPoint
@@ -57,6 +60,8 @@ class SplashscreenActivity : AppCompatActivity(), RequiresPermissions {
         intentFilter.addAction("PEER_DISCOVERY_ADDED_UNSUCCESSFULLY")
         intentFilter.addAction("SERVICE_REQUEST_ADDED_UNSUCCESSFULLY")
         intentFilter.addAction("SERVICE_DISCOVERY_CLEARED_UNSUCCESSFULLY")
+        intentFilter.addAction("INIT_AS_LC")
+        intentFilter.addAction("INIT_AS_GO")
 
         broadcastReceiver = InitializationBroadcastReceiver()
         LocalBroadcastManager.getInstance(applicationContext).registerReceiver(
@@ -71,17 +76,16 @@ class SplashscreenActivity : AppCompatActivity(), RequiresPermissions {
     private fun startInit(){
         portNumber = ((0..64329).random() + 1023)
         application.portNumber = portNumber
-
         accessPoint = SoftAccessPoint(applicationContext, portNumber)
-
         application.accessPoint = accessPoint
         accessPoint.startAP()
     }
 
-    private fun startMainActivity(){
+    private fun startMainActivity(legacyPeer: LegacyPeer?){
         LocalBroadcastManager.getInstance(applicationContext).unregisterReceiver(broadcastReceiver)
         Handler(mainLooper).postDelayed({
             val startIntent: Intent = Intent(this, MainActivity::class.java)
+            if(legacyPeer != null) startIntent.putExtra("groupOwner", legacyPeer)
             startIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
             startActivity(startIntent)
             finish()
@@ -119,8 +123,6 @@ class SplashscreenActivity : AppCompatActivity(), RequiresPermissions {
                 }
                 "SERVICE_DISCOVERY_ADDED_SUCCESSFULLY" -> {
                     updateText("Service discovery started...")
-
-                    startMainActivity()
                 }
                 "SERVICE_DISCOVERY_ADDED_UNSUCCESSFULLY" -> {
                     updateText("Service discovery failed! AMOGUS")
@@ -133,6 +135,16 @@ class SplashscreenActivity : AppCompatActivity(), RequiresPermissions {
                 }
                 "SERVICE_DISCOVERY_CLEARED_UNSUCCESSFULLY" -> {
                     updateText("Service discovery could not be flushed! AMOGUS")
+                }
+                "INIT_AS_LC" -> {
+                    println("Successfully connected to GO...")
+                    updateText("Formed a connection to a GO!")
+                    startMainActivity(intent.getParcelableExtra("groupOwner"))
+                }
+
+                "INIT_AS_GO" -> {
+                    updateText("Now a GO!")
+                    startMainActivity(null)
                 }
             }
         }
@@ -168,6 +180,7 @@ class SplashscreenActivity : AppCompatActivity(), RequiresPermissions {
             builder.show()
         }
 
+
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
                     requestPermissions(
@@ -183,7 +196,50 @@ class SplashscreenActivity : AppCompatActivity(), RequiresPermissions {
                 builder.show()
             }
         } else {
-            startInit()
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                if (!shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                    requestPermissions(
+                            arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                            PERMISSION_REQUEST_WRITE_STORAGE
+                    )
+                } else {
+                    val builder = AlertDialog.Builder(this)
+                    builder.setTitle("Storage access is required")
+                    builder.setMessage("Since storage access has not been granted, this app will not be able to function at all. Please go to Settings -> Applications -> Permissions and grant storage access to this app.")
+                    builder.setPositiveButton(android.R.string.ok, null)
+                    builder.setOnDismissListener { this.finishAffinity() }
+                    builder.show()
+                    return
+                }
+            }
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+                if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    requestPermissions(
+                            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                            PERMISSION_REQUEST_READ_STORAGE
+                    )
+                } else {
+                    val builder = AlertDialog.Builder(this)
+                    builder.setTitle("Storage access is required")
+                    builder.setMessage("Since storage access has not been granted, this app will not be able to function at all. Please go to Settings -> Applications -> Permissions and grant storage access to this app.")
+                    builder.setPositiveButton(android.R.string.ok, null)
+                    builder.setOnDismissListener { this.finishAffinity() }
+                    builder.show()
+                    return
+                }
+            }
+
+            val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+            if(!sharedPrefs.getBoolean("set_folders", false)){
+                supportFragmentManager.let{ it1 ->
+                    FirstLaunchFragment().show(it1, "as_pop_up")
+                }
+            } else {
+                application.downloadsFolder = File(sharedPrefs.getString("downloads_folder", ""))
+                application.uploadsFolder = File(sharedPrefs.getString("uploads_folder", ""))
+                startInit()
+            }
+
         }
     }
 
@@ -207,7 +263,24 @@ class SplashscreenActivity : AppCompatActivity(), RequiresPermissions {
                     builder.show()
                 }
             }
+            PERMISSION_REQUEST_READ_STORAGE, PERMISSION_REQUEST_WRITE_STORAGE -> {
+                if(grantResults.isEmpty()) return
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    println("permission granted. pawgers...")
+                } else {
+                    val builder = AlertDialog.Builder(this)
+                    builder.setTitle("Storage access is required")
+                    builder.setMessage("Since storage access has not been granted, this app will not be able to function at all.")
+                    builder.setPositiveButton(android.R.string.ok, null)
+                    builder.setOnDismissListener { this.finishAffinity() }
+                    builder.show()
+                }
+            }
         }
+    }
+
+    override fun onDismiss(dialog: DialogInterface?) {
+        startInit()
     }
 
 }

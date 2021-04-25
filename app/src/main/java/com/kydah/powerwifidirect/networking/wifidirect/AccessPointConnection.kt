@@ -11,31 +11,27 @@ import android.net.wifi.ScanResult
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import android.os.Build
-import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.kydah.powerwifidirect.networking.NetworkViewModel
-import com.kydah.powerwifidirect.networking.model.AccessPointData
-import com.kydah.powerwifidirect.networking.model.Peer
+import com.kydah.powerwifidirect.networking.model.LegacyPeer
 import com.kydah.powerwifidirect.networking.sockets.ClientNetsock
 import com.kydah.powerwifidirect.networking.sockets.SocketsHandler
 import com.thanosfisherman.wifiutils.WifiUtils
 import com.thanosfisherman.wifiutils.wifiConnect.ConnectionErrorCode
 import com.thanosfisherman.wifiutils.wifiConnect.ConnectionSuccessListener
 
-class AccessPointConnection(private var peer: Peer, private var context : Context, private val vmStoreOwner: ViewModelStoreOwner, private val handler : SocketsHandler) {
+class AccessPointConnection(private var legacyPeer: LegacyPeer, private var context : Context, private val handler : SocketsHandler) {
 
-    private val networkViewModel : NetworkViewModel = ViewModelProvider(vmStoreOwner).get(NetworkViewModel::class.java)
     private val wifiManager : WifiManager = (this.context.getSystemService(Context.WIFI_SERVICE) as WifiManager)
     private lateinit var clientNetsock: ClientNetsock
 
     fun establishConnection() {
-
-        if (peer.accessPointData != null) {
+        if (legacyPeer.accessPointData != null) {
       //      WifiUtils.withContext(context).scanWifi(this::getScanResults).start();
-            println("Attempting to connect to DIRECT! " + peer.accessPointData!!.SSID + " " + peer.accessPointData!!.passphrase)
+            println("Attempting to connect to DIRECT! " + legacyPeer.accessPointData!!.SSID + " " + legacyPeer.accessPointData!!.passphrase)
 //            establishConnectionQ()
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
                 establishConnectionQ()
@@ -43,8 +39,8 @@ class AccessPointConnection(private var peer: Peer, private var context : Contex
                 println("using pre-q method...")
 
                 val wifiConfiguration = WifiConfiguration()
-                wifiConfiguration.SSID = String.format("\"%s\"", peer.accessPointData!!.SSID)
-                wifiConfiguration.preSharedKey = String.format("\"%s\"", peer.accessPointData!!.passphrase)
+                wifiConfiguration.SSID = String.format("\"%s\"", legacyPeer.accessPointData!!.SSID)
+                wifiConfiguration.preSharedKey = String.format("\"%s\"", legacyPeer.accessPointData!!.passphrase)
 
                 wifiManager.addNetwork(wifiConfiguration)
 
@@ -55,9 +51,8 @@ class AccessPointConnection(private var peer: Peer, private var context : Contex
                     return
                 }
                 for(wifiConf in wifiManager.configuredNetworks){
-                    if(wifiConf.SSID != null && wifiConf.SSID ==  String.format("\"%s\"", peer.accessPointData!!.SSID))
+                    if(wifiConf.SSID != null && wifiConf.SSID ==  String.format("\"%s\"", legacyPeer.accessPointData!!.SSID))
                     {
-
                         wifiManager.disconnect()
                         wifiManager.enableNetwork(wifiConf.networkId, false)
                         println(wifiManager.reconnect())
@@ -74,19 +69,19 @@ class AccessPointConnection(private var peer: Peer, private var context : Contex
     private fun establishConnectionQ(){
 
         WifiUtils.withContext(context)
-                .connectWith(peer.accessPointData!!.SSID, peer.accessPointData!!.passphrase)
+                .connectWith(legacyPeer.accessPointData!!.SSID, legacyPeer.accessPointData!!.passphrase)
                 .setTimeout(25000)
                 .onConnectionResult(object : ConnectionSuccessListener {
                     override fun success() {
-                        println("Connection successfully established with " + peer.accessPointData!!.SSID)
+                        println("Connection successfully established with " + legacyPeer.accessPointData!!.SSID)
                         LocalBroadcastManager.getInstance(context).sendBroadcast(Intent("CHANGE_TO_CLIENT"))
                         createClientSocket()
                     }
 
                     override fun failed(errorCode: ConnectionErrorCode) {
-                        println("Failed to connect to " + peer.accessPointData!!.SSID + " " + errorCode)
-                        peer.accessPointData = null
-                        networkViewModel.peerList.value!!.add(peer)
+                        println("Failed to connect to " + legacyPeer.accessPointData!!.SSID + " " + errorCode)
+                        legacyPeer.accessPointData = null
+                        //networkViewModel.legacyPeerList.value!!.add(legacyPeer)
                     }
 
                 }).start()
@@ -98,7 +93,7 @@ class AccessPointConnection(private var peer: Peer, private var context : Contex
     }
 
     private fun createClientSocket(){
-        clientNetsock = ClientNetsock(peer.portNumber.toInt(), peer.accessPointData!!.inetAddress, handler)
+        clientNetsock = ClientNetsock(legacyPeer.portNumber!!.toInt(), legacyPeer.accessPointData!!.inetAddress, handler)
         clientNetsock.start()
     }
 

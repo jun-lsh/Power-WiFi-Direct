@@ -2,15 +2,12 @@ package com.kydah.powerwifidirect.networking
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.kydah.powerwifidirect.networking.model.Peer
+import com.kydah.powerwifidirect.networking.model.LegacyPeer
 import com.kydah.powerwifidirect.networking.model.PeerFile
 import com.kydah.powerwifidirect.networking.sockets.ServerNetsock
 import com.kydah.powerwifidirect.networking.sockets.SocketsHandler
-import com.kydah.powerwifidirect.networking.wifidirect.AccessPointConnection
 import com.kydah.powerwifidirect.networking.wifidirect.SoftAccessPoint
 import java.io.File
-import kotlin.coroutines.coroutineContext
 
 class NetworkViewModel : ViewModel(){
 
@@ -27,7 +24,7 @@ class NetworkViewModel : ViewModel(){
     }
 
     val transmissionMode : MutableLiveData<String> by lazy {
-        MutableLiveData<String>("Server")
+        MutableLiveData<String>("GO (Group Owner)")
     }
 
     val accessPoint : MutableLiveData<SoftAccessPoint> by lazy {
@@ -38,8 +35,8 @@ class NetworkViewModel : ViewModel(){
         MutableLiveData<ServerNetsock>()
     }
 
-    val peerList : MutableLiveData<HashSet<Peer>> by lazy {
-        MutableLiveData<HashSet<Peer>>()
+    val legacyPeerList : MutableLiveData<HashSet<LegacyPeer>> by lazy {
+        MutableLiveData<HashSet<LegacyPeer>>()
     }
 
     val fileList : MutableLiveData<ArrayList<PeerFile>> by lazy {
@@ -48,14 +45,6 @@ class NetworkViewModel : ViewModel(){
 
     val socketsHandler : MutableLiveData<SocketsHandler> by lazy {
         MutableLiveData<SocketsHandler>()
-    }
-
-    fun switchMode(){
-        if(transmissionMode.value == "Server") {
-            transmissionMode.value = "Client"
-        } else {
-            transmissionMode.value = "Server"
-        }
     }
 
 }

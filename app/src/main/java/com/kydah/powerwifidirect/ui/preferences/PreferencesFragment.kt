@@ -62,9 +62,6 @@ class PrefFragment : PreferenceFragmentCompat(){
     override fun onPreferenceTreeClick(preference: Preference?): Boolean {
         when(preference?.key){
             "transmission_mode" -> {
-                networkViewModel.switchMode()
-                if(networkViewModel.transmissionMode.value == "Client") LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(Intent("CHANGE_TO_CLIENT"))
-                else LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(Intent("CHANGE_TO_SERVER"))
             }
         }
 

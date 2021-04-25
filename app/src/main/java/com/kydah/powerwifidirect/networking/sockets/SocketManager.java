@@ -97,8 +97,8 @@ public class SocketManager implements Runnable {
         }
     }
 
+
     public void readFile(File file){
-        write(("svr res wf " + file.getName() + " " + (int) Math.ceil(file.length()/65535.0)).getBytes());
         byte[] buffer = new byte[MAXMESSSAGELENGTH];
         try {
             FileInputStream inputStream = new FileInputStream(file.getAbsolutePath());

@@ -1,6 +1,7 @@
 package com.kydah.powerwifidirect.ui.firstlaunch
 
 import android.app.Activity
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
@@ -21,6 +22,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
+import com.kydah.powerwifidirect.MainApplication
 import com.kydah.powerwifidirect.R
 import com.kydah.powerwifidirect.networking.NetworkViewModel
 import com.kydah.powerwifidirect.ui.home.HomeViewModel
@@ -36,18 +38,21 @@ class FirstLaunchFragment  : DialogFragment(){
     private lateinit var intent : Intent
     private lateinit var launchIntent : ActivityResultLauncher<Intent>
 
-    private var dlSet by Delegates.notNull<Boolean>()
-    private var ulSet by Delegates.notNull<Boolean>()
+
     private lateinit var sharedPrefs : SharedPreferences
 
-    private val networkViewModel : NetworkViewModel by activityViewModels()
+    private lateinit var application : MainApplication
+
+    //private val networkViewModel : NetworkViewModel by activityViewModels()
 
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
+
         val root = inflater.inflate(R.layout.fragment_first_launch, container, false)
+        application = application.applicationContext as MainApplication
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context)
         intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
         launchIntent = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
@@ -62,11 +67,15 @@ class FirstLaunchFragment  : DialogFragment(){
                 when(folderType){
                     "downloads_folder" -> {
                         sharedPrefs.edit().putString("downloads_folder", path).apply()
-                        networkViewModel.downloadsFolder.value = File(path)
+                        //networkViewModel.downloadsFolder.value = File(path)
+                        application.downloadsFolder = File(path)
+                        root.findViewById<TextView>(R.id.downloadsPath).text = path
                     }
                     "uploads_folder" -> {
                         sharedPrefs.edit().putString("uploads_folder", path).apply()
-                        networkViewModel.uploadsFolder.value = File(path)
+                        //networkViewModel.uploadsFolder.value = File(path)
+                        application.uploadsFolder = File(path)
+                        root.findViewById<TextView>(R.id.uploadsPath).text = path
                     }
                 }
             }
@@ -83,26 +92,35 @@ class FirstLaunchFragment  : DialogFragment(){
         val downloadsPath : TextView = view.findViewById(R.id.downloadsPath)
         val uploadsPath : TextView = view.findViewById(R.id.uploadsPath)
 
-        proceedButton.isEnabled = false
-        ulSet = false; dlSet = false
+        //proceedButton.isEnabled = false
 
         proceedButton.setOnClickListener {
+
+            if(uploadsPath.text.isNotBlank()){
+                if(!application.uploadsFolder.isDirectory) return@setOnClickListener
+            } else return@setOnClickListener
+
+
+            if(downloadsPath.text.isNotBlank()){
+                if(!application.downloadsFolder.isDirectory) return@setOnClickListener
+            } else return@setOnClickListener
+
             sharedPrefs.edit().putBoolean("set_folders", true).apply()
             dialog?.dismiss()
         }
 
-        networkViewModel.downloadsFolder.observe(viewLifecycleOwner, {
-            dlSet = it.isDirectory
-            downloadsPath.text = it.canonicalPath
-            if(dlSet && ulSet) proceedButton.isEnabled = true
-        })
-
-
-        networkViewModel.uploadsFolder.observe(viewLifecycleOwner, {
-            ulSet = it.isDirectory
-            uploadsPath.text = it.canonicalPath
-            if(dlSet && ulSet) proceedButton.isEnabled = true
-        })
+//        networkViewModel.downloadsFolder.observe(viewLifecycleOwner, {
+//            dlSet = it.isDirectory
+//            downloadsPath.text = it.canonicalPath
+//            if(dlSet && ulSet) proceedButton.isEnabled = true
+//        })
+//
+//
+//        networkViewModel.uploadsFolder.observe(viewLifecycleOwner, {
+//            ulSet = it.isDirectory
+//            uploadsPath.text = it.canonicalPath
+//            if(dlSet && ulSet) proceedButton.isEnabled = true
+//        })
 
         chooseDownloads.setOnClickListener{
             folderType = "downloads_folder"
@@ -117,5 +135,12 @@ class FirstLaunchFragment  : DialogFragment(){
 
     }
 
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        if(activity is DialogInterface.OnDismissListener){
+            (activity as (DialogInterface.OnDismissListener)).onDismiss(dialog)
+        }
+
+    }
 
 }
