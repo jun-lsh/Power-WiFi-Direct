@@ -53,8 +53,9 @@ class AccessPointConnection(private var legacyPeer: LegacyPeer, private var cont
                 for(wifiConf in wifiManager.configuredNetworks){
                     if(wifiConf.SSID != null && wifiConf.SSID ==  String.format("\"%s\"", legacyPeer.accessPointData!!.SSID))
                     {
+                        //wifiManager.disableNetwork(wifiConf.networkId)
                         wifiManager.disconnect()
-                        wifiManager.enableNetwork(wifiConf.networkId, false)
+                        wifiManager.enableNetwork(wifiConf.networkId, true)
                         println(wifiManager.reconnect())
                         val intentFilter = IntentFilter()
                         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION)

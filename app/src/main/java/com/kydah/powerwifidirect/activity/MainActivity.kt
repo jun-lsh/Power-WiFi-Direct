@@ -55,9 +55,9 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
 
     companion object {
         const val MESSAGE_READ = 0x400 + 1
-        const val MY_HANDLE = 0x400 + 2
-        const val HELLO = 0x400 + 3
-        const val GET_OBJ = 0x400 + 4
+        //const val MY_HANDLE = 0x400 + 2
+        const val HELLO = 0x400 + 2
+        const val GET_OBJ = 0x400 + 3
         const val channelId = "com.kydah.powerwifidirect"
     }
 
@@ -87,9 +87,6 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
 
         networkViewModel.fileList.value = ArrayList()
 
-        for(file in networkViewModel.uploadsFolder.value!!.listFiles()){
-            networkViewModel.fileList.value!!.add(PeerFile(networkViewModel.deviceId.value!!, file.name))
-        }
 
         networkViewModel.legacyPeerList.value = HashSet()
 
@@ -98,8 +95,14 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
         intentFilter.addAction("SERVICE_SEARCH_PEER_INFO")
         intentFilter.addAction("CLIENT_ACTION")
         intentFilter.addAction("SOCK_MAN_OPEN")
+        intentFilter.addAction("INIT_AS_LC_MA")
+        intentFilter.addAction("SOCKET_ACTION")
         networkViewModel.downloadsFolder.value = application.downloadsFolder
         networkViewModel.uploadsFolder.value = application.uploadsFolder
+//
+//        for(file in networkViewModel.uploadsFolder.value!!.listFiles()){
+//            networkViewModel.fileList.value!!.add(PeerFile(networkViewModel.deviceId.value!!, file.name))
+//        }
 
 
         broadcastReceiver = MainBroadcastReceiver(this)
@@ -160,6 +163,11 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        networkViewModel.accessPoint.value!!.terminateAP()
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -213,8 +221,16 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
 
                 "SOCK_MAN_OPEN" -> {
 //                    networkViewModel.accessPoint.value!!.createGroup()
-                    socketHandler.peerlistReq()
+                    //socketHandler.peerlistReq()
                     socketHandler.filelistReq(2)
+                }
+
+                "INIT_AS_LC_MA" -> {
+                    networkViewModel.transmissionMode.value = "Legacy Client (LC)"
+//                    networkViewModel.serverNetsock.value!!.stopServer()
+                    socketHandler = SocketsHandler(networkViewModel, applicationContext, "clt")
+                    legacyGroupOwner = intent.getParcelableExtra("groupOwner")
+                    AccessPointConnection(legacyGroupOwner!!, applicationContext, socketHandler).establishConnection()
                 }
 
             }

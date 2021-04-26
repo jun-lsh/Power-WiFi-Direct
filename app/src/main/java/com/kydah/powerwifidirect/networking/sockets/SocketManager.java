@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -30,7 +32,9 @@ public class SocketManager implements Runnable {
     private Handler handler;
     private String side;
 
-    private final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+    private final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(4);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
+
 
     public SocketManager(Socket socket, Handler handler, String side) {
         this.socket = socket;
@@ -58,12 +62,17 @@ public class SocketManager implements Runnable {
             while (true) {
                 try {
                     // Read from the InputStream
+
+                    byte[] prefixLengthBytes = new byte[2];
+
                     int prefixLength;
                     try {
-                        prefixLength = dataInputStream.readUnsignedShort();
+                        dataInputStream.readFully(prefixLengthBytes);
+                        prefixLength = ((prefixLengthBytes[0] >> BYTESHIFT) & BYTEMASK) + prefixLengthBytes[1] & BYTEMASK;//dataInputStream.readUnsignedShort();
                         System.out.println(prefixLength);
                     } catch (EOFException e){
-                        break;
+                        //break;
+                        continue;
                     }
                     byte[] bytes = new byte[prefixLength];
                     dataInputStream.readFully(bytes);
@@ -71,10 +80,10 @@ public class SocketManager implements Runnable {
 //                    if (bytes == -1) {
 //                        break;
 //                    }
-
+                   // handler.obtainMessage(MainActivity.GET_OBJ, this).sendToTarget();
                     handler.obtainMessage(MainActivity.MESSAGE_READ, prefixLength , -1, bytes).sendToTarget();
                 } catch (IOException e) {
-
+                    System.out.println("WHAT??");
                 }
             }
         } catch (IOException e) {
@@ -126,7 +135,7 @@ public class SocketManager implements Runnable {
                         e.printStackTrace();
                     }
                 }
-            }, 1, TimeUnit.MILLISECONDS);
+            }, 50, TimeUnit.MILLISECONDS);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -134,25 +143,27 @@ public class SocketManager implements Runnable {
 
 
     public void write(byte[] buffer) {
-        executor.schedule(new Runnable() {
-            @Override
-            public void run() {
-                try {
+        executorService.submit(() -> {
+            executor.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    try {
 //                    DataOutputStream dataOutputStream = new DataOutputStream(oStream);
 //                    dataOutputStream.writeInt(buffer.length+1);
 //                    dataOutputStream.write(0);
 //                    dataOutputStream.write(buffer);
 //                    dataOutputStream.flush();
-                    if(buffer.length > MAXMESSSAGELENGTH) throw new IOException("message too long");
-                    oStream.write((buffer.length >> BYTESHIFT) & BYTEMASK);
-                    oStream.write(buffer.length & BYTEMASK);
-                    oStream.write(buffer);
-                    oStream.flush();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                        if(buffer.length > MAXMESSSAGELENGTH) throw new IOException("message too long");
+                        oStream.write((buffer.length >> BYTESHIFT) & BYTEMASK);
+                        oStream.write(buffer.length & BYTEMASK);
+                        oStream.write(buffer);
+                        oStream.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-        }, 1, TimeUnit.MILLISECONDS);
+            }, 1, TimeUnit.MILLISECONDS);
+        });
     }
 
 

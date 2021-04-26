@@ -41,7 +41,7 @@ class FirstLaunchFragment  : DialogFragment(){
 
     private lateinit var sharedPrefs : SharedPreferences
 
-    private lateinit var application : MainApplication
+    private lateinit var mainApplication: MainApplication
 
     //private val networkViewModel : NetworkViewModel by activityViewModels()
 
@@ -52,7 +52,7 @@ class FirstLaunchFragment  : DialogFragment(){
     ): View? {
 
         val root = inflater.inflate(R.layout.fragment_first_launch, container, false)
-        application = application.applicationContext as MainApplication
+        mainApplication = activity?.applicationContext as MainApplication
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context)
         intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
         launchIntent = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
@@ -68,13 +68,13 @@ class FirstLaunchFragment  : DialogFragment(){
                     "downloads_folder" -> {
                         sharedPrefs.edit().putString("downloads_folder", path).apply()
                         //networkViewModel.downloadsFolder.value = File(path)
-                        application.downloadsFolder = File(path)
+                        mainApplication.downloadsFolder = File(path)
                         root.findViewById<TextView>(R.id.downloadsPath).text = path
                     }
                     "uploads_folder" -> {
                         sharedPrefs.edit().putString("uploads_folder", path).apply()
                         //networkViewModel.uploadsFolder.value = File(path)
-                        application.uploadsFolder = File(path)
+                        mainApplication.uploadsFolder = File(path)
                         root.findViewById<TextView>(R.id.uploadsPath).text = path
                     }
                 }
@@ -97,12 +97,12 @@ class FirstLaunchFragment  : DialogFragment(){
         proceedButton.setOnClickListener {
 
             if(uploadsPath.text.isNotBlank()){
-                if(!application.uploadsFolder.isDirectory) return@setOnClickListener
+                if(!mainApplication.uploadsFolder.isDirectory) return@setOnClickListener
             } else return@setOnClickListener
 
 
             if(downloadsPath.text.isNotBlank()){
-                if(!application.downloadsFolder.isDirectory) return@setOnClickListener
+                if(!mainApplication.downloadsFolder.isDirectory) return@setOnClickListener
             } else return@setOnClickListener
 
             sharedPrefs.edit().putBoolean("set_folders", true).apply()

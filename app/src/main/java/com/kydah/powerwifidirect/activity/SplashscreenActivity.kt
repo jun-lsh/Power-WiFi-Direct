@@ -253,7 +253,8 @@ class SplashscreenActivity : AppCompatActivity(), RequiresPermissions, DialogInt
             PERMISSION_REQUEST_FINE_LOCATION -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     println("permission granted. pawgers...")
-                    startInit()
+                    checkPerms()
+                    //startInit()
                 } else {
                     val builder = AlertDialog.Builder(this)
                     builder.setTitle("Location access is required")

@@ -12,7 +12,7 @@ class ClientNetsock(private var portNumber : Int, private var ipAddress : String
         val socket : Socket = Socket()
         socket.bind(null)
         try{
-        socket.connect(InetSocketAddress(ipAddress, portNumber), 5000)}
+         socket.connect(InetSocketAddress(ipAddress, portNumber), 5000)}
         catch(e : SocketTimeoutException){
             println("Not on the correct network! " + e.printStackTrace())
             return
