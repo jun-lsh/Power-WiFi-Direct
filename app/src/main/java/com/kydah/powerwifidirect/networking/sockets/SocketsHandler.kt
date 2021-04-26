@@ -36,6 +36,8 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
     private lateinit var receivedFile : FileOutputStream
     private var receivedFileChunks by Delegates.notNull<Int>()
 
+    private var myDeviceId = networkViewModel.deviceId.value!!
+
     @SuppressLint("HardwareIds")
     override fun handleMessage(msg: Message) {
         when(msg.what){
@@ -46,14 +48,15 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
 
             HELLO -> {
                 val helloBuffer = socketManager.side + " dvn " + networkViewModel.deviceId.value
-                socketManager.write(helloBuffer.toByteArray())
+                socketManager.write(helloBuffer.toByteArray(StandardCharsets.UTF_8))
             }
 
             MESSAGE_READ -> {
                 val readBuf = msg.obj as ByteArray
 
                 if (!receivingFile) {
-                    val readMessage = String(readBuf, 0, msg.arg1)
+                    println(readBuf.size)
+                    val readMessage = String(readBuf, StandardCharsets.UTF_8)
                     println("Got message: $readMessage")
                     val tokens = readMessage.split(" ")
 
@@ -79,7 +82,7 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
                             receivingFile = false
                             if(targetSocket != ""){
                                 val file = File(networkViewModel.downloadsFolder.value!!.absolutePath + "/tmp/" + receivingFileName)
-                                sockets[targetSocket]!!.write(("svr res wf " + file.name + " " + Math.ceil(file.length() / 65535.0).toInt()).toByteArray())
+                                sockets[targetSocket]!!.write(("svr res wf " + file.name + " " + Math.ceil(file.length() / 65535.0).toInt()).toByteArray(StandardCharsets.UTF_8))
                                 sockets[targetSocket]!!.readFile(file)
                                 targetSocket = ""
                             }
@@ -104,10 +107,10 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
                     "fl" -> {
                         val fileList = networkViewModel.fileList.value!!
                         for(file in networkViewModel.uploadsFolder.value!!.listFiles()){
-                            fileRes(file.name!!, networkViewModel.deviceId.value!!)
+                            fileRes(file.name!!, networkViewModel.deviceId.value!!, tokens[3])
                         }
                         for (file in fileList) {
-                            fileRes(file)
+                            fileRes(file, tokens[3])
                         }
                     }
 
@@ -122,12 +125,12 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
                             val fileList = networkViewModel.uploadsFolder.value!!.listFiles()
                             for (file in fileList) {
                                 if (file.name == tokens[3]) {
-                                    socketManager.write(("svr res wf " + file.name + " " + Math.ceil(file.length() / 65535.0).toInt()).toByteArray())
-                                    socketManager.readFile(file)
+                                    sockets[tokens[5]]!!.write(("svr res wf " + file.name + " " + Math.ceil(file.length() / 65535.0).toInt()).toByteArray(StandardCharsets.UTF_8))
+                                    sockets[tokens[5]]!!.readFile(file)
                                 }
                             }
                         } else {
-                            sockets[tokens[4]]!!.write(("svr req tmpf " + tokens[3] + " " + tokens[5]).toByteArray())
+                            sockets[tokens[4]]!!.write(("svr req tmpf " + tokens[3] + " " + tokens[5]).toByteArray(StandardCharsets.UTF_8))
                         }
                     }
                 }
@@ -194,7 +197,7 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
                         val fileList = networkViewModel.uploadsFolder.value!!.listFiles()
                         for (file in fileList) {
                             if (file.name == tokens[3]) {
-                                socketManager.write(("clt res wf " + file.name + " " + Math.ceil(file.length() / 65535.0).toInt()+ " " + tokens[4]).toByteArray())
+                                socketManager.write(("clt res wf " + file.name + " " + Math.ceil(file.length() / 65535.0).toInt()+ " " + tokens[4]).toByteArray(StandardCharsets.UTF_8))
                                         socketManager.readFile(file)
                             }
                         }
@@ -204,7 +207,7 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
                         val fileList = networkViewModel.uploadsFolder.value!!.listFiles()
                         for (file in fileList) {
                             if (file.name == tokens[3]) {
-                                socketManager.write(("clt res wf " + file.name + " " + Math.ceil(file.length() / 65535.0).toInt()+ " " + tokens[4]).toByteArray())
+                                socketManager.write(("clt res wf " + file.name + " " + Math.ceil(file.length() / 65535.0).toInt()+ " " + tokens[4]).toByteArray(StandardCharsets.UTF_8))
                                 socketManager.readFile(file)
                             }
                         }
@@ -239,30 +242,51 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
     }
 
     fun peerlistReq(){
-        if(!receivingFile) socketManager.write(("$side req pl").toByteArray())
+        if(!receivingFile) socketManager.write(("$side req pl $myDeviceId").toByteArray(StandardCharsets.UTF_8))
     }
 
+    fun filelistReq(hops: Int, targetId: String){
+        if(!receivingFile) sockets[targetId]!!.write(("$side req fl $myDeviceId").toByteArray(StandardCharsets.UTF_8))
+    }
+
+
     fun filelistReq(hops: Int){
-        if(!receivingFile) socketManager.write(("$side req fl").toByteArray())
+        if(!receivingFile) socketManager.write(("$side req fl $myDeviceId").toByteArray(StandardCharsets.UTF_8))
     }
 
     fun fileReq(filename: String, deviceId: String){
         if(!receivingFile) {
-            socketManager.write(("$side req f $filename $deviceId "+ networkViewModel.deviceId.value!! ).toByteArray())
+            socketManager.write(("$side req f $filename $deviceId $myDeviceId").toByteArray(StandardCharsets.UTF_8))
+            println("successful req!")
+        }
+    }
+
+
+    fun fileReq(filename: String, deviceId: String, targetId: String){
+        if(!receivingFile) {
+            sockets[targetId]!!.write(("$side req f $filename $deviceId $myDeviceId").toByteArray(StandardCharsets.UTF_8))
             println("successful req!")
         }
     }
 
     fun fileRes(filename: String, deviceId: String){
-        socketManager.write(("$side res f " + filename +  " " + deviceId).toByteArray())
+        socketManager.write(("$side res f $filename $deviceId $myDeviceId").toByteArray(StandardCharsets.UTF_8))
+    }
+
+    fun fileRes(filename: String, deviceId: String, targetId : String){
+        sockets[targetId]!!.write(("$side res f $filename $deviceId $myDeviceId").toByteArray(StandardCharsets.UTF_8))
     }
 
     fun fileRes(file: PeerFile){
-        socketManager.write(("$side res f " + file.filename + " " + file.peerDeviceId).toByteArray())
+        socketManager.write(("$side res f " + file.filename + " " + file.peerDeviceId + " $myDeviceId").toByteArray(StandardCharsets.UTF_8))
+    }
+
+    fun fileRes(file: PeerFile, targetId: String){
+        sockets[targetId]!!.write(("$side res f " + file.filename + " " + file.peerDeviceId + " $myDeviceId").toByteArray(StandardCharsets.UTF_8))
     }
 
     fun peerRes(legacyPeer: LegacyPeer){
-        socketManager.write(("$side res p $legacyPeer").toByteArray())
+        socketManager.write(("$side res p $legacyPeer $myDeviceId").toByteArray(StandardCharsets.UTF_8))
     }
 
 
