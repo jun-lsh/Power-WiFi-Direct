@@ -18,6 +18,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -56,7 +58,7 @@ public class SocketManager implements Runnable {
     private InputStream iStream;
     private OutputStream oStream;
 
-    private BufferedOutputStream doStream;
+    private ObjectOutputStream doStream;
 
     @Override
     public void run() {
@@ -65,52 +67,42 @@ public class SocketManager implements Runnable {
             iStream = socket.getInputStream();
             oStream = socket.getOutputStream();
 
-            BufferedInputStream dataInputStream = new BufferedInputStream(iStream);
+            System.out.println("SocketMan Open!");
+
+
             //pwOStream = new PrintWriter(new BufferedWriter(new OutputStreamWriter(oStream)), true);
-            doStream = new BufferedOutputStream(oStream);
 
+            //os before is as is is blocking!! :<
+            doStream = new ObjectOutputStream(oStream);
+            ObjectInputStream dataInputStream = new ObjectInputStream(iStream);
+            boolean firstCall = true;
             handler.obtainMessage(MainActivity.GET_OBJ, this).sendToTarget();
-            handler.obtainMessage(MainActivity.HELLO).sendToTarget();
-
             while (true) {
                 try {
                     // Read from the InputStream
-
+                    if(firstCall){
+                        handler.obtainMessage(MainActivity.HELLO).sendToTarget();
+                        firstCall = false;
+                    }
+                    byte[] prefixBytes = new byte[4];
                     int prefixLength;
-                    ByteArrayOutputStream prefixLengthBytes = new ByteArrayOutputStream();
-                    try {
-                        //dataInputStream.readFully(prefixLengthBytes);
-                        //prefixLength = ((prefixLengthBytes[0] >> BYTESHIFT) & BYTEMASK) + prefixLengthBytes[1] & BYTEMASK;//dataInputStream.readUnsignedShort();
-                        for(int i = 0; i < 4; i++) {
-                            if(dataInputStream.read(aByte) != -1) prefixLengthBytes.write(aByte);
-                        }
-                        prefixLength = ByteBuffer.wrap(prefixLengthBytes.toByteArray()).order(ByteOrder.BIG_ENDIAN).getInt();
-                        //prefixLength = dataInputStream.readInt();
-                        System.out.println("Received buffer: " + prefixLength);
-                        if(prefixLength == 0){}
-                    } catch (EOFException e){
-                        //break;
-                        continue;
-                    }
-
-                    if(prefixLength > MAXMESSSAGELENGTH) continue;
-
-                    //byte[] bytes = new byte[prefixLength];
+                    dataInputStream.readFully(prefixBytes, 0, 4);
+                    prefixLength = ByteBuffer.wrap(prefixBytes).order(ByteOrder.BIG_ENDIAN).getInt();
+                    byte[] bytes = new byte[prefixLength];//(byte[]) dataInputStream.readObject();//
+//                    prefixLength = bytes.length;
+                    System.out.println("Received buffer: " + prefixLength);
                     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                    //dataInputStream.readFully(bytes, 0, prefixLength);
-
-                    while(prefixLength > 0){
-                        int len = dataInputStream.read(aByte);
-                       // System.out.println(len);
-                        if(len != -1) {
-                         //   System.out.println("received: " + aByte[0]);
-                            byteArrayOutputStream.write(aByte,0,len);
-                            prefixLength-=len;
-                        }
+                    int bytesRead;
+                    while(prefixLength != 0){
+                        dataInputStream.readFully(aByte);
+                        byteArrayOutputStream.write(aByte, 0, aByte.length);
+                        prefixLength--;
                     }
 
-                    byte[] bytes = byteArrayOutputStream.toByteArray();
-                    handler.obtainMessage(MainActivity.MESSAGE_READ, prefixLength , -1, bytes).sendToTarget();
+                    byte[] bytesBaos = byteArrayOutputStream.toByteArray();
+
+                    handler.obtainMessage(MainActivity.MESSAGE_READ,  bytesBaos.length , -1, bytesBaos ).sendToTarget();
+                    byteArrayOutputStream.close();
                 } catch (IOException e) {
                     System.out.println("WHAT??");
                 }
@@ -154,7 +146,7 @@ public class SocketManager implements Runnable {
                         while(rc != -1){
                             if(buffer.length > MAXMESSSAGELENGTH) throw new IOException("message too long");
                             System.out.println("Buffer size: " + buffer.length);
-                            doStream.write(htonl(buffer.length), 0, 4);
+                            //doStream.write(htonl(buffer.length), 0, 4);
                             doStream.write(buffer, 0, buffer.length);
                             doStream.flush();
                             rc = inputStream.read(buffer);
@@ -187,7 +179,10 @@ public class SocketManager implements Runnable {
 //                        pwOStream.write(buffer.length & BYTEMASK);
                         System.out.println("Buffer size: " + buffer.length);
                         doStream.write(htonl(buffer.length), 0, 4);
-                        doStream.write(buffer, 0, buffer.length);
+//                        doStream.flush();
+//                        doStream.writeInt(buffer.length);
+                        //doStream.write(0);
+                        doStream.write(buffer);
                         doStream.flush();
                     } catch (IOException e) {
                         e.printStackTrace();

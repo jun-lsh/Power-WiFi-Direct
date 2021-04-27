@@ -12,6 +12,7 @@ class ClientNetsock(private var portNumber : Int, private var ipAddress : String
         val socket : Socket = Socket()
         socket.bind(null)
         try{
+            println("Attempting to connect to $ipAddress at $portNumber")
          socket.connect(InetSocketAddress(ipAddress, portNumber), 5000)}
         catch(e : SocketTimeoutException){
             println("Not on the correct network! " + e.printStackTrace())
@@ -24,6 +25,7 @@ class ClientNetsock(private var portNumber : Int, private var ipAddress : String
 
 //        var socketHandler : SocketHandler = SocketHandler(socket, true)
 //        socketHandler.start()
+        println("connected")
         var chat = SocketManager(socket, handler, "clt")
         Thread(chat).start()
     }

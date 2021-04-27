@@ -47,6 +47,7 @@ class SocketsHandler(private val networkViewModel: NetworkViewModel, private val
             }
 
             HELLO -> {
+                println("Sending HELLO!")
                 val helloBuffer = socketManager.side + " dvn " + networkViewModel.deviceId.value
                 socketManager.write(helloBuffer.toByteArray(StandardCharsets.UTF_8))
             }
