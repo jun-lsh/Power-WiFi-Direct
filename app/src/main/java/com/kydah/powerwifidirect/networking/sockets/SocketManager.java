@@ -8,6 +8,7 @@ import com.kydah.powerwifidirect.activity.MainActivity;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -27,6 +28,7 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -38,6 +40,8 @@ public class SocketManager implements Runnable {
     private static final int BYTEMASK = 0xff;
     private static final int SHORTMASK = 0xffff;
     private static final int BYTESHIFT = 8;
+
+    private static final byte[] byteDelim  = new byte[]{(byte) 0xFE,(byte) 0xFE,(byte) 0xFE};
 
     private Socket socket = null;
     private Handler handler;
@@ -58,7 +62,7 @@ public class SocketManager implements Runnable {
     private InputStream iStream;
     private OutputStream oStream;
 
-    private ObjectOutputStream doStream;
+    private DataOutputStream doStream;
 
     @Override
     public void run() {
@@ -73,8 +77,8 @@ public class SocketManager implements Runnable {
             //pwOStream = new PrintWriter(new BufferedWriter(new OutputStreamWriter(oStream)), true);
 
             //os before is as is is blocking!! :<
-            doStream = new ObjectOutputStream(oStream);
-            ObjectInputStream dataInputStream = new ObjectInputStream(iStream);
+            doStream = new DataOutputStream(oStream);
+            DataInputStream dataInputStream = new DataInputStream(iStream);
             boolean firstCall = true;
             handler.obtainMessage(MainActivity.GET_OBJ, this).sendToTarget();
             while (true) {
@@ -86,25 +90,53 @@ public class SocketManager implements Runnable {
                     }
                     byte[] prefixBytes = new byte[4];
                     int prefixLength;
+                    int consecDelim = 0;
+                    do {
+                        byte pain = dataInputStream.readByte();
+                        if (pain == (byte) 0xFE) consecDelim++;
+                        else consecDelim = 0;
+                        System.out.println("checking " + consecDelim + " " + pain + " " + (byte) 0xFE);
+                    } while (consecDelim != 3);
+
                     dataInputStream.readFully(prefixBytes, 0, 4);
+                    //if(state == -1) break;
                     prefixLength = ByteBuffer.wrap(prefixBytes).order(ByteOrder.BIG_ENDIAN).getInt();
-                    byte[] bytes = new byte[prefixLength];//(byte[]) dataInputStream.readObject();//
+//                    byte[] bytes = new byte[prefixLength];//(byte[]) dataInputStream.readObject();//
 //                    prefixLength = bytes.length;
                     System.out.println("Received buffer: " + prefixLength);
-                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                    int bytesRead;
-                    while(prefixLength != 0){
-                        dataInputStream.readFully(aByte);
-                        byteArrayOutputStream.write(aByte, 0, aByte.length);
-                        prefixLength--;
-                    }
+                    //dataInputStream.readByte();
+//                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+//                    //int bytesRead;
+//                    while(prefixLength != 0){
+//                        dataInputStream.readFully(aByte);
+//                        byteArrayOutputStream.write(aByte, 0, aByte.length);
+//                        prefixLength--;
+//                    }
+//
+//                    byte[] bytesBaos = byteArrayOutputStream.toByteArray();
 
-                    byte[] bytesBaos = byteArrayOutputStream.toByteArray();
+                    byte[] bytes = new byte[prefixLength];
+                    consecDelim = 0;
+                    do {
+                        byte pain = dataInputStream.readByte();
+                        if (pain == (byte) 0xFE) consecDelim++;
+                        else consecDelim = 0;
+                        System.out.println("checking " + consecDelim + " " + pain + " " + (byte) 0xFE);
+                    } while (consecDelim != 3);
 
-                    handler.obtainMessage(MainActivity.MESSAGE_READ,  bytesBaos.length , -1, bytesBaos ).sendToTarget();
-                    byteArrayOutputStream.close();
+                    dataInputStream.readFully(bytes, 0, prefixLength);
+
+                    handler.obtainMessage(MainActivity.MESSAGE_READ,  prefixLength , -1, bytes ).sendToTarget();
+                    //write("ACK".getBytes(StandardCharsets.UTF_8));
+                    //byteArrayOutputStream.close();
                 } catch (IOException e) {
-                    System.out.println("WHAT??");
+                    System.out.println("WHAT?? " );
+                    e.printStackTrace();
+                    oStream.close();
+                    iStream.close();
+                    dataInputStream.close();
+                    socket.close();
+                    break;
                 }
             }
         } catch (IOException e) {
@@ -142,25 +174,28 @@ public class SocketManager implements Runnable {
 //                    dataOutputStream.write(buffer);
 //                    dataOutputStream.flush();
 
-                        int rc = inputStream.read(buffer);
-                        while(rc != -1){
+                        int rc;
+                        while((rc = inputStream.read(buffer)) > 0){
                             if(buffer.length > MAXMESSSAGELENGTH) throw new IOException("message too long");
-                            System.out.println("Buffer size: " + buffer.length);
-                            //doStream.write(htonl(buffer.length), 0, 4);
-                            doStream.write(buffer, 0, buffer.length);
-                            doStream.flush();
-                            rc = inputStream.read(buffer);
+                            System.out.println("Buffer size: " + rc);
+                            oStream.write(htonl(rc), 0, htonl(rc).length);
+                            //oStream.write(0);
+                            oStream.flush();
+                            oStream.write(buffer, 0, rc);
+                            oStream.flush();
+                            //rc = inputStream.read(buffer);
                         }
                         inputStream.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
-            }, 100, TimeUnit.MILLISECONDS);
+            }, 500, TimeUnit.MILLISECONDS);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
     }
+
 
 
     public void write(byte[] buffer) {
@@ -177,18 +212,43 @@ public class SocketManager implements Runnable {
                         if(buffer.length > MAXMESSSAGELENGTH) throw new IOException("message too long");
 //                        pwOStream.write((buffer.length >> BYTESHIFT) & BYTEMASK);
 //                        pwOStream.write(buffer.length & BYTEMASK);
+
+
+
                         System.out.println("Buffer size: " + buffer.length);
-                        doStream.write(htonl(buffer.length), 0, 4);
-//                        doStream.flush();
-//                        doStream.writeInt(buffer.length);
-                        //doStream.write(0);
-                        doStream.write(buffer);
+
+                        byte[] prefixLength = htonl(buffer.length);
+                        byte[] appendPain = Arrays.copyOf(byteDelim, byteDelim.length + prefixLength.length);
+                        System.arraycopy(prefixLength, 0, appendPain, byteDelim.length, prefixLength.length);
+
+                        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(appendPain);
+
+                        //oStream.write(htonl(buffer.length), 0, htonl( buffer.length).length);
+                        byte[] lengthBuffer = new byte[appendPain.length];
+                        int count;
+                        while((count = byteArrayInputStream.read(lengthBuffer)) > 0){
+                           // System.out.println("Buffer length bytes size: " + count);
+                            doStream.write(lengthBuffer, 0, count);
+                        }
+                        //oStream.write(0);
+                        //oStream.flush();
+                        doStream.flush();
+                        appendPain = Arrays.copyOf(byteDelim, byteDelim.length + buffer.length);
+                        System.arraycopy(buffer, 0, appendPain, byteDelim.length, buffer.length);
+
+                        //oStream.write);
+                        byteArrayInputStream = new ByteArrayInputStream(appendPain);
+                        lengthBuffer = new byte[appendPain.length];
+                        while((count = byteArrayInputStream.read(lengthBuffer)) > 0){
+                            doStream.write(lengthBuffer, 0, count);
+                        }
+                        //oStream.write(buffer, 0, buffer.length);
                         doStream.flush();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
-            }, 100, TimeUnit.MILLISECONDS);
+            }, 500, TimeUnit.MILLISECONDS);
         });
     }
 
