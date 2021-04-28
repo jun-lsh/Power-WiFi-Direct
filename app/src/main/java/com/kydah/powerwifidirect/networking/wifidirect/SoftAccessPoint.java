@@ -226,6 +226,8 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
             if(validPeers.isEmpty()){
                 System.out.println("No services detected, will init as a GO");
                 groupOwner = true;
+                System.out.println(thisInstanceName);
+                registerService(thisInstanceName, false);
                 localBroadcastManager.sendBroadcast(new Intent("INIT_AS_GO"));
             }
         }
@@ -370,7 +372,7 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
             //putting all the information here as im worried about delay between recordInfo and prelimInfo
             System.out.println("Spawning service with parameters: " + thisSSID + " " + thisPassphrase + " " + thisInet);
             thisInstanceName = thisSSID + "/-/" + thisPassphrase + "/-/" + portNumber + "/-/" + thisDeviceID + "/-/" + thisInet;
-            registerService(thisInstanceName, false);
+            startServiceDiscovery();
         }
     }
 
