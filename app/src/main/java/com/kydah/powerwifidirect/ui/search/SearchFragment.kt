@@ -12,6 +12,7 @@ import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 
 import androidx.navigation.fragment.findNavController
@@ -27,14 +28,14 @@ import com.kydah.powerwifidirect.networking.NetworkViewModel
 import com.kydah.powerwifidirect.networking.model.PeerFile
 import com.kydah.powerwifidirect.ui.adapters.PeerRecyclerAdapter
 
-private const val SEARCH_CUT_OFF = 50
+private const val SEARCH_CUT_OFF = 2
 class SearchFragment : Fragment() {
 
     private lateinit var searchViewModel: SearchViewModel
 
     private var allPeers = arrayListOf<PeerFile>()
     private lateinit var networkViewModel : NetworkViewModel
-    private lateinit var searchProgressBar: ProgressBar
+    private lateinit var nofiles: TextView
     private lateinit var peerRecyclerAdapter: PeerRecyclerAdapter
 
     override fun onCreateView(
@@ -46,44 +47,6 @@ class SearchFragment : Fragment() {
 
         requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
         networkViewModel = ViewModelProvider(requireActivity()).get(NetworkViewModel::class.java)
-        val peerRecyclerView: RecyclerView = root.findViewById(R.id.peer_recycler_view)
-        peerRecyclerView.layoutManager = LinearLayoutManager(context)
-        peerRecyclerAdapter = PeerRecyclerAdapter(false, context)
-        peerRecyclerView.adapter = peerRecyclerAdapter
-        fillPeerRecyclerAdapter(peerRecyclerAdapter)
-
-        searchProgressBar = root.findViewById(R.id.searchProgress)
-        searchProgressBar.visibility = GONE
-
-        // Execute search and hide keyboard on click
-        val searchInput: TextInputEditText = root.findViewById(R.id.search_input)
-        val searchButton: ImageButton = root.findViewById(R.id.search_button)
-        searchButton.setOnClickListener {
-            hideSoftKeyboard(root)
-            // Search for peer
-            val fileName = searchInput.text.toString()
-            if (fileName.isNotEmpty()) {
-                peerRecyclerAdapter.peers = searchForPeer(fileName, peerRecyclerAdapter.peers)
-                peerRecyclerAdapter.notifyDataSetChanged()
-            } else {
-                startFileRequest()
-            }
-        }
-
-        val clearButton: ImageButton = root.findViewById(R.id.clear_search_button)
-        // Clear search input and refill peer recycler adapter
-        clearButton.setOnClickListener {
-            hideSoftKeyboard(root)
-
-            searchInput.text = null
-            peerRecyclerAdapter.peers = allPeers
-            peerRecyclerAdapter.notifyDataSetChanged()
-        }
-
-        val receivedFab: FloatingActionButton = root.findViewById(R.id.received_fab)
-        receivedFab.setOnClickListener {
-            findNavController().navigate(R.id.action_navigation_search_to_navigation_received)
-        }
 
         return root
     }
@@ -91,12 +54,47 @@ class SearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        networkViewModel.fileList.observe(viewLifecycleOwner, {
-            if(it.isNotEmpty()){
-                searchProgressBar.visibility = GONE
-                peerRecyclerAdapter.peers = it
+        val peerRecyclerView: RecyclerView = view.findViewById(R.id.peer_recycler_view)
+        peerRecyclerView.layoutManager = LinearLayoutManager(context)
+        peerRecyclerAdapter = PeerRecyclerAdapter(false, context)
+        peerRecyclerView.adapter = peerRecyclerAdapter
+        //fillPeerRecyclerAdapter(peerRecyclerAdapter)
+        peerRecyclerAdapter.filteredPeers = allPeers
+        nofiles = view.findViewById(R.id.noFilesTextView)
+
+        // Execute search and hide keyboard on click
+        val searchInput: TextInputEditText = view.findViewById(R.id.search_input)
+        val searchButton: ImageButton = view.findViewById(R.id.search_button)
+        searchButton.setOnClickListener {
+            hideSoftKeyboard(view)
+            // Search for peer
+            val fileName = searchInput.text.toString()
+            if (fileName.isNotEmpty()) {
+                peerRecyclerAdapter.filteredPeers = searchForPeer(fileName, peerRecyclerAdapter.peers)
                 peerRecyclerAdapter.notifyDataSetChanged()
             }
+        }
+
+        val clearButton: ImageButton = view.findViewById(R.id.clear_search_button)
+        // Clear search input and refill peer recycler adapter
+        clearButton.setOnClickListener {
+            hideSoftKeyboard(view)
+            searchInput.text = null
+            peerRecyclerAdapter.filteredPeers = allPeers
+            peerRecyclerAdapter.notifyDataSetChanged()
+        }
+
+        val receivedFab: FloatingActionButton = view.findViewById(R.id.received_fab)
+        receivedFab.setOnClickListener {
+            findNavController().navigate(R.id.action_navigation_search_to_navigation_received)
+        }
+
+        networkViewModel.fileList.observe(viewLifecycleOwner, {
+            if(it.isNotEmpty()){
+                peerRecyclerAdapter.filteredPeers = it
+                peerRecyclerAdapter.notifyDataSetChanged()
+                nofiles.visibility = GONE
+            } else nofiles.visibility = VISIBLE
         })
     }
 
@@ -106,21 +104,6 @@ class SearchFragment : Fragment() {
         imm.hideSoftInputFromWindow(root.windowToken, 0)
     }
 
-    private fun startFileRequest(){
-        networkViewModel.fileList.value = ArrayList()
-//        if(networkViewModel.transmissionMode.value == "Server"){
-//            networkViewModel.switchMode()
-//            val intent = Intent("CLIENT_ACTION")
-//            intent.putExtra("ACTION_TYPE", "FILE_REQ_CHANGE")
-//            LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
-//            LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(Intent("CHANGE_TO_CLIENT"))
-//        } else {
-//            val intent = Intent("CLIENT_ACTION")
-//            intent.putExtra("ACTION_TYPE", "FILE_REQ_NO_CHANGE")
-//            LocalBroadcastManager.getInstance(requireContext()).sendBroadcast(intent)
-//        }
-        //searchProgressBar.visibility = VISIBLE
-    }
 
     private fun searchForPeer(fileName: String, data: ArrayList<PeerFile>): ArrayList<PeerFile> {
         // Get peer name list from peers
@@ -138,17 +121,14 @@ class SearchFragment : Fragment() {
         }
 
         return sortedPeers
-
     }
 
-    private fun fillPeerRecyclerAdapter(recyclerAdapter: PeerRecyclerAdapter){
-        val peers = arrayListOf<PeerFile>()
-        // Do code for getting peers here
-
-        // This arraylist is for searching
-        allPeers = peers
-
-        recyclerAdapter.peers = peers
-        recyclerAdapter.notifyDataSetChanged()
-    }
+//    private fun fillPeerRecyclerAdapter(recyclerAdapter: PeerRecyclerAdapter){
+//        val peers = arrayListOf<PeerFile>()
+//        // Do code for getting peers here
+//        // This arraylist is for searching
+//        allPeers = peers
+//        recyclerAdapter.peers = peers
+//        recyclerAdapter.notifyDataSetChanged()
+//    }
 }

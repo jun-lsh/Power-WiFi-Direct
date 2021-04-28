@@ -23,7 +23,7 @@ import com.thanosfisherman.wifiutils.WifiUtils
 import com.thanosfisherman.wifiutils.wifiConnect.ConnectionErrorCode
 import com.thanosfisherman.wifiutils.wifiConnect.ConnectionSuccessListener
 
-class AccessPointConnection(private var legacyPeer: LegacyPeer, private var context : Context, private val handler : SocketsHandler) {
+class AccessPointConnection(private var legacyPeer: LegacyPeer, private var context : Context, private val handler : SocketsHandler, private val networkViewModel: NetworkViewModel) {
 
     private val wifiManager : WifiManager = (this.context.getSystemService(Context.WIFI_SERVICE) as WifiManager)
     private lateinit var clientNetsock: ClientNetsock
@@ -76,6 +76,7 @@ class AccessPointConnection(private var legacyPeer: LegacyPeer, private var cont
                     override fun success() {
                         println("Connection successfully established with " + legacyPeer.accessPointData!!.SSID)
                         LocalBroadcastManager.getInstance(context).sendBroadcast(Intent("CHANGE_TO_CLIENT"))
+                        networkViewModel.connectingToAP.value = false
                         createClientSocket()
                     }
 
@@ -94,7 +95,7 @@ class AccessPointConnection(private var legacyPeer: LegacyPeer, private var cont
     }
 
     private fun createClientSocket(){
-        clientNetsock = ClientNetsock(legacyPeer.portNumber!!.toInt(), legacyPeer.accessPointData!!.inetAddress, handler)
+        clientNetsock = ClientNetsock(legacyPeer.portNumber!!.toInt(), legacyPeer.accessPointData!!.inetAddress, handler, context)
         clientNetsock.start()
     }
 
@@ -106,6 +107,7 @@ class AccessPointConnection(private var legacyPeer: LegacyPeer, private var cont
                 if(networkInfo != null){
                 if(networkInfo.type == ConnectivityManager.TYPE_WIFI && networkInfo.isConnected){
                     println("Successfully connected to " + wifiManager.connectionInfo.ssid)
+                    networkViewModel.connectingToAP.value = false
                     createClientSocket()
                 }}
             } else if (intent.action.equals(WifiManager.WIFI_STATE_CHANGED_ACTION, ignoreCase = true)){

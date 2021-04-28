@@ -12,10 +12,18 @@
         tools:layout="@layout/fragment_home" >
         <action
             android:id="@+id/action_navigation_home_to_navigation_uploads"
-            app:destination="@id/navigation_uploads" />
+            app:destination="@id/navigation_uploads"
+            app:enterAnim="@anim/slide_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_out"/>
         <action
             android:id="@+id/action_navigation_home_to_navigation_downloads"
-            app:destination="@id/navigation_downloads" />
+            app:destination="@id/navigation_downloads"
+            app:enterAnim="@anim/slide_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_out"/>
     </fragment>
 
     <fragment
@@ -25,7 +33,11 @@
         tools:layout="@layout/fragment_transfers" >
         <action
             android:id="@+id/action_navigation_uploads_to_navigation_home"
-            app:destination="@id/navigation_home" />
+            app:destination="@id/navigation_home"
+            app:enterAnim="@anim/slide_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_out"/>
     </fragment>
 
     <fragment
@@ -35,7 +47,11 @@
         tools:layout="@layout/fragment_transfers" >
         <action
             android:id="@+id/action_navigation_downloads_to_navigation_home"
-            app:destination="@id/navigation_home" />
+            app:destination="@id/navigation_home"
+            app:enterAnim="@anim/slide_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_out"/>
     </fragment>
 
     <fragment
@@ -45,7 +61,11 @@
         tools:layout="@layout/fragment_search">
         <action
             android:id="@+id/action_navigation_search_to_navigation_received"
-            app:destination="@id/navigation_received" />
+            app:destination="@id/navigation_received"
+            app:enterAnim="@anim/slide_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_out"/>
     </fragment>
 
     <fragment
@@ -55,7 +75,11 @@
         tools:layout="@layout/fragment_received">
         <action
             android:id="@+id/action_navigation_received_to_navigation_search"
-            app:destination="@id/navigation_search" />
+            app:destination="@id/navigation_search"
+            app:enterAnim="@anim/slide_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_out"/>
     </fragment>
 
     <fragment

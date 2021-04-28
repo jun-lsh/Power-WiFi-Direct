@@ -53,6 +53,7 @@
             android:id="@+id/filetypeIcon"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:visibility="gone"
             app:srcCompat="@drawable/ic_baseline_music_note_24" />
 
     </LinearLayout>

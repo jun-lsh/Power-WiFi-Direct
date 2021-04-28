@@ -1,12 +1,13 @@
 package com.kydah.powerwifidirect.networking.sockets
 
+import android.content.Context
 import android.os.Handler
 import java.net.ConnectException
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketTimeoutException
 
-class ClientNetsock(private var portNumber : Int, private var ipAddress : String, private var handler : Handler) : Thread() {
+class ClientNetsock(private var portNumber : Int, private var ipAddress : String, private var handler : Handler, private var context : Context) : Thread() {
 
     override fun run() {
         val socket : Socket = Socket()
@@ -26,7 +27,7 @@ class ClientNetsock(private var portNumber : Int, private var ipAddress : String
 //        var socketHandler : SocketHandler = SocketHandler(socket, true)
 //        socketHandler.start()
         println("connected")
-        var chat = SocketManager(socket, handler, "clt")
+        var chat = SocketManager(socket, handler, "clt", context)
         Thread(chat).start()
     }
 

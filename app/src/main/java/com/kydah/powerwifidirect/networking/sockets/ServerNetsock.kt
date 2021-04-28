@@ -1,12 +1,13 @@
 package com.kydah.powerwifidirect.networking.sockets
 
+import android.content.Context
 import android.os.Handler
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import java.io.IOException
 import java.net.ServerSocket
 import java.net.Socket
 
-class ServerNetsock(private var portNumber : Int, private var handler : Handler) : Thread() {
+class ServerNetsock(private var portNumber : Int, private var handler : Handler, private var context : Context) : Thread() {
 
     private lateinit var serverSocket: ServerSocket
     private var running = false
@@ -15,7 +16,7 @@ class ServerNetsock(private var portNumber : Int, private var handler : Handler)
     fun startServer(){
         try {
             //serverSocket = ServerSocket(portNumber)
-            threadPooledServer = ThreadPooledServer(portNumber, handler)
+            threadPooledServer = ThreadPooledServer(portNumber, handler, context)
             running = true
             this.start()
         } catch (e : IOException){

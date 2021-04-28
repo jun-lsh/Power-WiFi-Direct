@@ -71,11 +71,8 @@ abstract class AbstractTransferFragment: Fragment() {
 
     private fun fillPendingRecyclerAdapter(recyclerAdapter: PeerRecyclerAdapter) {
         val peers = arrayListOf<PeerFile>()
-        // Fill shit here
-
         recyclerAdapter.peers = peers
         recyclerAdapter.notifyDataSetChanged()
-
 
         // Show no pending files if recycler adapter is empty
         if (recyclerAdapter.itemCount == 0) {

@@ -16,6 +16,7 @@ import com.kydah.powerwifidirect.networking.model.PeerFile
 
 class PeerRecyclerAdapter(private val uploading: Boolean = false, private var context: Context? = null): RecyclerView.Adapter<PeerRecyclerAdapter.ViewHolder>() {
     var peers = arrayListOf<PeerFile>()
+    var filteredPeers = arrayListOf<PeerFile>()
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val peerId: TextView = itemView.findViewById(R.id.peer_id_textview)
@@ -33,6 +34,7 @@ class PeerRecyclerAdapter(private val uploading: Boolean = false, private var co
                     intent.putExtra("PEER_ID", peerId.text)
                     intent.putExtra("FILENAME", fileName.text)
                     LocalBroadcastManager.getInstance(context!!).sendBroadcast(intent)
+                    requestButton.isEnabled = false
                 }
             }
         }
@@ -45,12 +47,11 @@ class PeerRecyclerAdapter(private val uploading: Boolean = false, private var co
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val peerFile = peers[position]
+        val peerFile = filteredPeers[position]
         holder.peerId.text = peerFile.peerDeviceId
         holder.fileName.text = peerFile.filename
 
         //val extension = peerFile.filename.substring(peerFile.filename.lastIndexOf("."))
-
 
         if (uploading) {
             holder.requestButton.visibility = View.GONE
@@ -65,6 +66,6 @@ class PeerRecyclerAdapter(private val uploading: Boolean = false, private var co
     }
 
     override fun getItemCount(): Int {
-        return peers.size
+        return filteredPeers.size
     }
 }

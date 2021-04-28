@@ -25,7 +25,6 @@ import androidx.preference.PreferenceManager
 import com.kydah.powerwifidirect.MainApplication
 import com.kydah.powerwifidirect.R
 import com.kydah.powerwifidirect.networking.NetworkViewModel
-import com.kydah.powerwifidirect.ui.home.HomeViewModel
 import com.kydah.powerwifidirect.utils.FileUtils
 import org.w3c.dom.Text
 import java.io.File

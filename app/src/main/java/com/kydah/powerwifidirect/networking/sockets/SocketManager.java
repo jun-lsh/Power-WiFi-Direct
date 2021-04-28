@@ -1,9 +1,11 @@
 package com.kydah.powerwifidirect.networking.sockets;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
 import com.kydah.powerwifidirect.activity.MainActivity;
+import com.kydah.powerwifidirect.utils.NotificationUtils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -51,7 +53,7 @@ public class SocketManager implements Runnable {
     private Socket socket = null;
     private Handler handler;
     private String side;
-
+    private Context context;
     private int cumBytesRec = 0;
 
     private byte[] aByte = new byte[1];
@@ -64,10 +66,11 @@ public class SocketManager implements Runnable {
     });
 
 
-    public SocketManager(Socket socket, Handler handler, String side) {
+    public SocketManager(Socket socket, Handler handler, String side, Context context) {
         this.socket = socket;
         this.side = side;
         this.handler = handler;
+        this.context = context;
     }
 
     private InputStream iStream;
@@ -129,19 +132,7 @@ public class SocketManager implements Runnable {
                     cumBytesRec += 4;
                     //if(state == -1) break;
                     prefixLength = ByteBuffer.wrap(prefixBytes).order(ByteOrder.BIG_ENDIAN).getInt();
-//                    byte[] bytes = new byte[prefixLength];//(byte[]) dataInputStream.readObject();//
-//                    prefixLength = bytes.length;
                     System.out.println("Received buffer: " + prefixLength);
-                    //dataInputStream.readByte();
-//                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-//                    //int bytesRead;
-//                    while(prefixLength != 0){
-//                        dataInputStream.readFully(aByte);
-//                        byteArrayOutputStream.write(aByte, 0, aByte.length);
-//                        prefixLength--;
-//                    }
-//
-//                    byte[] bytesBaos = byteArrayOutputStream.toByteArray();
 
                     byte[] bytes = new byte[prefixLength];
                     consecDelim = 0;
@@ -185,8 +176,8 @@ public class SocketManager implements Runnable {
         }
     }
 
-    public void closeConnection(){
-        write("close_con".getBytes());
+    public void closeConnection(String toSend){
+        write("toSend".getBytes());
         try {
             socket.close();
         } catch (IOException e) {
@@ -195,38 +186,26 @@ public class SocketManager implements Runnable {
     }
 
 
-    public void readFile(File file){
+    public void readFile(File file, boolean temp, String target){
         byte[] buffer = new byte[MAXMESSSAGELENGTH];
         try {
+            int fileSize = (int) Math.ceil(file.length() / 65535.0);
+            int cumRc = 0;
             FileInputStream inputStream = new FileInputStream(file.getAbsolutePath());
-            executor.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-//                    DataOutputStream dataOutputStream = new DataOutputStream(oStream);
-//                    dataOutputStream.writeInt(buffer.length+1);
-//                    dataOutputStream.write(0);
-//                    dataOutputStream.write(buffer);
-//                    dataOutputStream.flush();
-
-                        int rc;
-                        while((rc = inputStream.read(buffer)) > 0){
-                            if(buffer.length > MAXMESSSAGELENGTH) throw new IOException("message too long");
-//                            System.out.println("Buffer size: " + rc);
-//                            oStream.write(htonl(rc), 0, htonl(rc).length);
-//                            //oStream.write(0);
-//                            oStream.flush();
-//                            oStream.write(buffer, 0, rc);
-//                            oStream.flush();
-                            writeBuffer(buffer);
-                            //rc = inputStream.read(buffer);
-                        }
-                        inputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+            try {
+                int rc;
+                while((rc = inputStream.read(buffer)) > 0){
+                    cumRc += rc;
+                    NotificationUtils.Companion.pushUploadingNotification(file.getName(), target, fileSize, (int) Math.ceil(cumRc / 65535.0), false, context);
+                    if(buffer.length > MAXMESSSAGELENGTH) throw new IOException("message too long");
+                    write(buffer);
                 }
-            }, 500, TimeUnit.MILLISECONDS);
+                inputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            NotificationUtils.Companion.pushUploadingNotification(file.getName(), target, 0,0, false, context);
+            if(temp) file.delete();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

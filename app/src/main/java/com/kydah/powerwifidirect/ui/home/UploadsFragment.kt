@@ -17,7 +17,6 @@ class UploadsFragment: AbstractTransferFragment() {
 
         val uploadsTextView: TextView = root.findViewById(R.id.transfers_placeholder_textview)
         uploadsTextView.text = resources.getString(R.string.uploads)
-
         val noUploadsTextView: TextView = root.findViewById(R.id.no_transferring_files)
         noUploadsTextView.text = resources.getString(R.string.no_files_uploading)
 

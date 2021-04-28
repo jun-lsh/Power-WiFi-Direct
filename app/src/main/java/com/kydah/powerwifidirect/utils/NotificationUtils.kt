@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.kydah.powerwifidirect.R
 
 class NotificationUtils {
     companion object {
@@ -12,6 +13,8 @@ class NotificationUtils {
         private lateinit var notificationChannel: NotificationChannel
         private lateinit var currentNotificationChannelID : String
 
+        private var runningNotificationId = 2
+        private val fileNotificationId = HashMap<String, Int>()
 
         fun createNotificationManager(activity: Activity){
             notificationManager = activity.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -65,6 +68,40 @@ class NotificationUtils {
             pushNotification(notificationID, title, text, context, currentNotificationChannelID, icon, targetActivity, false, false)
         }
 
+        fun pushProgressNotification(notificationID: Int, title : String, text : String, icon : Int, packets:Int, progress : Int, pending : Boolean, context: Context){
+            val builder : Notification.Builder = Notification.Builder(context, currentNotificationChannelID)
+            builder.setContentTitle(title)
+                    .setContentText(text)
+                    .setSmallIcon(icon)
+                    .setProgress(packets, progress, pending)
+            notificationManager.notify(notificationID, builder.build())
+
+        }
+
+        fun pushUploadingNotification(filename : String, deviceName : String, packets : Int, progress : Int, pending : Boolean, context: Context){
+            val notificationID  : Int
+            if(fileNotificationId[filename+deviceName] != null) notificationID = fileNotificationId[filename+deviceName]!!
+            else {
+                notificationID = runningNotificationId
+                fileNotificationId[filename+deviceName] = notificationID
+                runningNotificationId++
+            }
+            if(packets != progress && packets != 0) pushProgressNotification(notificationID, "Uploading file: $filename", "File source: $deviceName", R.drawable.ic_baseline_upload_24, packets, progress, pending, context)
+            else pushProgressNotification(notificationID, "Uploaded file: $filename", "File source: $deviceName", R.drawable.ic_baseline_task_alt_24, 0, 0, false, context)
+        }
+
+
+        fun pushDownoadingNotification(filename : String, deviceName : String, packets : Int, progress : Int, pending : Boolean, context: Context){
+            val notificationID  : Int
+            if(fileNotificationId[filename+deviceName] != null) notificationID = fileNotificationId[filename+deviceName]!!
+            else {
+                notificationID = runningNotificationId
+                fileNotificationId[filename+deviceName] = notificationID
+                runningNotificationId++
+            }
+            if(packets != progress && packets != 0) pushProgressNotification(notificationID, "Downloading file: $filename", "File source: $deviceName", R.drawable.ic_baseline_download_24, packets, progress, pending, context)
+            else pushProgressNotification(notificationID, "Downloaded file: $filename", "File source: $deviceName", R.drawable.ic_baseline_task_alt_24, 0, 0, false, context)
+        }
 
     }
 }

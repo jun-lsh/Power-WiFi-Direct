@@ -5,12 +5,10 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.NotificationManager
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.IBinder
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -21,6 +19,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.preference.PreferenceManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.snackbar.Snackbar
 import com.kydah.powerwifidirect.MainApplication
 import com.kydah.powerwifidirect.R
 import com.kydah.powerwifidirect.networking.NetworkViewModel
@@ -35,7 +34,7 @@ import com.kydah.powerwifidirect.utils.NotificationUtils
 import java.io.File
 
 
-class MainActivity : AppCompatActivity(), RequiresPermissions {
+class MainActivity : AppCompatActivity(), RequiresPermissions, MainServiceCallbacks {
 
     private val PERMISSION_REQUEST_READ_STORAGE = 2
     private val PERMISSION_REQUEST_WRITE_STORAGE = 3
@@ -50,6 +49,9 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
     private lateinit var application : MainApplication
 
     private lateinit var socketAction : String
+
+    //private lateinit var snackbar: Snackbar
+    private lateinit var mainService : MainService
 
     private var legacyGroupOwner : LegacyPeer? = null
 
@@ -75,19 +77,10 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
         navView.setupWithNavController(navController)
 
         application = applicationContext as MainApplication
-
-
-
         socketAction = ""
-
-
         networkViewModel.deviceId.value = Settings.Secure.getString(applicationContext.getContentResolver(), Settings.Secure.ANDROID_ID)
-
         networkViewModel.accessPoint.value = application.accessPoint
-
         networkViewModel.fileList.value = ArrayList()
-
-
         networkViewModel.legacyPeerList.value = HashSet()
 
 
@@ -99,32 +92,37 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
         intentFilter.addAction("SOCKET_ACTION")
         networkViewModel.downloadsFolder.value = application.downloadsFolder
         networkViewModel.uploadsFolder.value = application.uploadsFolder
-//
-//        for(file in networkViewModel.uploadsFolder.value!!.listFiles()){
-//            networkViewModel.fileList.value!!.add(PeerFile(networkViewModel.deviceId.value!!, file.name))
-//        }
-
 
         broadcastReceiver = MainBroadcastReceiver(this)
         LocalBroadcastManager.getInstance(applicationContext).registerReceiver(broadcastReceiver, intentFilter)
 
         legacyGroupOwner = intent.getParcelableExtra<LegacyPeer>("groupOwner")
-        println(legacyGroupOwner != null)
         if(legacyGroupOwner != null){
             networkViewModel.transmissionMode.value = "Legacy Client (LC)"
             socketHandler = SocketsHandler(networkViewModel, applicationContext, "clt")
-            AccessPointConnection(legacyGroupOwner!!, applicationContext, socketHandler).establishConnection()
+            networkViewModel.connectingToAP.value = true
+            AccessPointConnection(legacyGroupOwner!!, applicationContext, socketHandler, networkViewModel).establishConnection()
         } else {
             socketHandler = SocketsHandler(networkViewModel, applicationContext, "svr")
-            NotificationUtils.createNotificationManager(this)
-            NotificationUtils.createNotificationChannel(channelId, "Power: WiFi Direct Notifications",
-                    "Notifications for Power", NotificationManager.IMPORTANCE_HIGH)
-            NotificationUtils.pushNotification(69, "Power Persistent Notification", "Current number of peers: 0",
-                    applicationContext, R.drawable.ic_baseline_group_24, this, true, true)
-            networkViewModel.serverNetsock.value = ServerNetsock(application.portNumber, socketHandler)
+            networkViewModel.serverNetsock.value = ServerNetsock(application.portNumber, socketHandler, applicationContext)
             networkViewModel.serverNetsock.value!!.startServer()
         }
 
+        Intent(this, MainService::class.java)
+        val serviceConnection = object:ServiceConnection{
+            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                val binder = service as MainService.LocalBinder
+                mainService = binder.service
+            }
+
+            override fun onServiceDisconnected(name: ComponentName?) {
+            }
+
+        }
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+        NotificationUtils.createNotificationManager(this)
+        NotificationUtils.createNotificationChannel(channelId, "Power: WiFi Direct Notifications",
+                "Notifications for Power", NotificationManager.IMPORTANCE_HIGH)
     }
 
 
@@ -191,24 +189,21 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
         }
     }
 
+    override fun onSupportNavigateUp(): Boolean {
+        // setupActionBarWithNavController breaks the back button for fragments that you transition
+        // to using actions manually. this fixes it by doing it manually.
+        val navController = findNavController(R.id.nav_host_fragment)
+        return navController.navigateUp() || super.onSupportNavigateUp()
+    }
+
     inner class MainBroadcastReceiver(private var activity: MainActivity) : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when(intent!!.action){
                 "SERVICE_SEARCH_PEER_INFO" -> {
                     val peer = intent.getParcelableExtra<LegacyPeer>("PEER_OBJ")!!
-                    //val accessPointData = intent.getParcelableExtra<AccessPointData>("AP_OBJ")
-                    //peer.accessPointData = accessPointData
-                    if(!networkViewModel.legacyPeerList.value!!.contains(peer)){
-                        NotificationUtils.pushNotification(70, "Power: New Peer Detected",
-                                "New peer was detected: " +  peer.deviceID,
-                                applicationContext, R.drawable.ic_baseline_group_24, activity, false, false)
-                    }
                     networkViewModel.legacyPeerList.value!!.remove(peer)
                     networkViewModel.legacyPeerList.value!!.add(peer)
                     networkViewModel.legacyPeerList.value = networkViewModel.legacyPeerList.value!!
-                    NotificationUtils.pushNotification(69, "Power Persistent Notification",
-                            "Current number of peers: " +  networkViewModel.legacyPeerList.value!!.size,
-                            applicationContext, R.drawable.ic_baseline_group_24, activity, true, true)
                 }
 
                 "SOCKET_ACTION" -> {
@@ -220,8 +215,10 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
                 }
 
                 "SOCK_MAN_OPEN" -> {
-//                    networkViewModel.accessPoint.value!!.createGroup()
-                    //socketHandler.peerlistReq()
+                    if(legacyGroupOwner == null){
+
+                    NotificationUtils.pushNotification(1, "New Legacy Client Joined!", "Current number of clients: " + socketHandler.sockets.size,
+                            applicationContext, R.drawable.ic_baseline_group_24, activity, false, true)}
                     socketHandler.filelistReq(2)
                 }
 
@@ -230,10 +227,31 @@ class MainActivity : AppCompatActivity(), RequiresPermissions {
 //                    networkViewModel.serverNetsock.value!!.stopServer()
                     socketHandler = SocketsHandler(networkViewModel, applicationContext, "clt")
                     legacyGroupOwner = intent.getParcelableExtra("groupOwner")
-                    AccessPointConnection(legacyGroupOwner!!, applicationContext, socketHandler).establishConnection()
+                    AccessPointConnection(legacyGroupOwner!!, applicationContext, socketHandler, networkViewModel).establishConnection()
+                    networkViewModel.connectingToAP.value = true
+                }
+
+                "INIT_AS_GO_MA" -> {
+                    socketHandler = SocketsHandler(networkViewModel, applicationContext, "svr")
+                    networkViewModel.serverNetsock.value = ServerNetsock(application.portNumber, socketHandler, applicationContext)
+                    networkViewModel.serverNetsock.value!!.startServer()
+                }
+
+                "GO_DISCONNECT" -> {
+                    networkViewModel.transmissionMode.value = "Group Owner (GO)"
+                    networkViewModel.accessPoint.value!!.startAP()
                 }
 
             }
+        }
+    }
+
+    override fun clearNetworking() {
+        if(legacyGroupOwner == null){
+            socketHandler.serverCloseConnection()
+            networkViewModel.serverNetsock.value!!.stopServer()
+        } else {
+            socketHandler.clientCloseConnection()
         }
     }
 }

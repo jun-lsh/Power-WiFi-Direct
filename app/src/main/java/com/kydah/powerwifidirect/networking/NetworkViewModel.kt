@@ -11,6 +11,10 @@ import java.io.File
 
 class NetworkViewModel : ViewModel(){
 
+    val connectingToAP : MutableLiveData<Boolean> by lazy {
+        MutableLiveData<Boolean>(false)
+    }
+
     val deviceId : MutableLiveData<String> by lazy {
         MutableLiveData<String>()
     }
@@ -43,8 +47,5 @@ class NetworkViewModel : ViewModel(){
         MutableLiveData<ArrayList<PeerFile>>()
     }
 
-    val socketsHandler : MutableLiveData<SocketsHandler> by lazy {
-        MutableLiveData<SocketsHandler>()
-    }
 
 }
