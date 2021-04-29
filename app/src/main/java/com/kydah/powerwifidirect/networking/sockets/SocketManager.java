@@ -196,15 +196,17 @@ public class SocketManager implements Runnable {
                 int rc;
                 while((rc = inputStream.read(buffer)) > 0){
                     cumRc += rc;
+                    byte[] block = new byte[rc];
+                    System.arraycopy(buffer, 0, block, 0, rc);
                     NotificationUtils.Companion.pushUploadingNotification(file.getName(), target, fileSize, (int) Math.ceil(cumRc / 65535.0), false, context);
                     if(buffer.length > MAXMESSSAGELENGTH) throw new IOException("message too long");
-                    write(buffer);
+                    write(block);
                 }
                 inputStream.close();
+                NotificationUtils.Companion.pushUploadingNotification(file.getName(), target, 0,0, false, context);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            NotificationUtils.Companion.pushUploadingNotification(file.getName(), target, 0,0, false, context);
             if(temp) file.delete();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
