@@ -17,21 +17,15 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import androidx.preference.PreferenceManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.snackbar.Snackbar
 import com.kydah.powerwifidirect.MainApplication
 import com.kydah.powerwifidirect.R
 import com.kydah.powerwifidirect.networking.NetworkViewModel
-import com.kydah.powerwifidirect.networking.model.AccessPointData
 import com.kydah.powerwifidirect.networking.model.LegacyPeer
-import com.kydah.powerwifidirect.networking.model.PeerFile
 import com.kydah.powerwifidirect.networking.sockets.ServerNetsock
 import com.kydah.powerwifidirect.networking.sockets.SocketsHandler
 import com.kydah.powerwifidirect.networking.wifidirect.AccessPointConnection
-import com.kydah.powerwifidirect.ui.firstlaunch.FirstLaunchFragment
 import com.kydah.powerwifidirect.utils.NotificationUtils
-import java.io.File
 
 
 class MainActivity : AppCompatActivity(), RequiresPermissions, MainServiceCallbacks {
@@ -120,6 +114,7 @@ class MainActivity : AppCompatActivity(), RequiresPermissions, MainServiceCallba
 
         }
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+        NotificationUtils.setNetworkViewModel(networkViewModel)
         NotificationUtils.createNotificationManager(this)
         NotificationUtils.createNotificationChannel(channelId, "Power: WiFi Direct Notifications",
                 "Notifications for Power", NotificationManager.IMPORTANCE_HIGH)

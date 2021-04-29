@@ -1,14 +1,20 @@
 package com.kydah.powerwifidirect.ui.home
 
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.kydah.powerwifidirect.R
+import com.kydah.powerwifidirect.networking.NetworkViewModel
 import com.kydah.powerwifidirect.networking.model.PeerFile
 
 class UploadsFragment: AbstractTransferFragment() {
+
+    private val networkViewModel : NetworkViewModel by activityViewModels()
+
     override fun getView(
         inflater: LayoutInflater,
         container: ViewGroup?
@@ -23,13 +29,13 @@ class UploadsFragment: AbstractTransferFragment() {
         return root
     }
 
-    override fun fillTransferringRecyclerAdapter(): ArrayList<PeerFile> {
-        // Return array list of peer files to fill the recycler adapter
-        return arrayListOf()
-    }
-
-    override fun fillPendingRecyclerAdapter(): ArrayList<PeerFile> {
-        // Return array list of peer files to fill the recycler adapter
-        return arrayListOf()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        networkViewModel.uploading.observe(viewLifecycleOwner, {
+            fillTransferringRecyclerAdapter(it)
+        })
+        networkViewModel.pendingUploads.observe(viewLifecycleOwner, {
+            fillTransferringRecyclerAdapter(it)
+        })
     }
 }

@@ -222,10 +222,10 @@ public class SoftAccessPoint implements WifiP2pManager.ConnectionInfoListener, W
     private void startServiceDiscovery() {
         serviceDiscoveryCalls++;
         System.out.println("Calling for service discovery: " + serviceDiscoveryCalls);
+        //if(serviceDiscoveryCalls >= maxServiceCalls)
         if(serviceDiscoveryCalls == maxServiceCalls){
             if(validPeers.isEmpty()){
                 System.out.println("No services detected, will init as a GO");
-
                 System.out.println(thisInstanceName);
                 registerService(thisInstanceName, false);
                 if(!groupOwner){localBroadcastManager.sendBroadcast(new Intent("INIT_AS_GO"));

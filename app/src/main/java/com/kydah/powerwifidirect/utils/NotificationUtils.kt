@@ -6,6 +6,8 @@ import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.kydah.powerwifidirect.R
+import com.kydah.powerwifidirect.networking.NetworkViewModel
+import com.kydah.powerwifidirect.networking.model.PeerFile
 
 class NotificationUtils {
     companion object {
@@ -13,8 +15,14 @@ class NotificationUtils {
         private lateinit var notificationChannel: NotificationChannel
         private lateinit var currentNotificationChannelID : String
 
+        private lateinit var networkViewModel: NetworkViewModel
+
         private var runningNotificationId = 2
         private val fileNotificationId = HashMap<String, Int>()
+
+        fun setNetworkViewModel(networkViewModel: NetworkViewModel){
+            this.networkViewModel = networkViewModel
+        }
 
         fun createNotificationManager(activity: Activity){
             notificationManager = activity.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -74,8 +82,8 @@ class NotificationUtils {
                     .setContentText(text)
                     .setSmallIcon(icon)
                     .setProgress(packets, progress, pending)
+                    .setContentIntent(null)
             notificationManager.notify(notificationID, builder.build())
-
         }
 
         fun pushUploadingNotification(filename : String, deviceName : String, packets : Int, progress : Int, pending : Boolean, context: Context){
@@ -86,12 +94,20 @@ class NotificationUtils {
                 fileNotificationId[filename+deviceName] = notificationID
                 runningNotificationId++
             }
-            if(packets != progress && packets != 0) pushProgressNotification(notificationID, "Uploading file: $filename", "File source: $deviceName", R.drawable.ic_baseline_upload_24, packets, progress, pending, context)
-            else pushProgressNotification(notificationID, "Uploaded file: $filename", "File source: $deviceName", R.drawable.ic_baseline_task_alt_24, 0, 0, false, context)
+            if(packets != progress && (packets != 0 || pending)) {
+                if(networkViewModel.pendingUploads.value!!.contains(PeerFile("", filename))) networkViewModel.pendingUploads.value!!.remove(PeerFile("", filename))
+                if(!networkViewModel.uploading.value!!.contains(PeerFile("", filename))) networkViewModel.uploading.value!!.add(PeerFile("", filename))
+                networkViewModel.pendingUploads.value = networkViewModel.pendingUploads.value!!
+                networkViewModel.uploading.value = networkViewModel.uploading.value!!
+                pushProgressNotification(notificationID, "Uploading file: $filename", "", R.drawable.ic_baseline_upload_24, packets, progress, pending, context)}
+            else {
+                if(networkViewModel.uploading.value!!.contains(PeerFile("", filename))) networkViewModel.uploading.value!!.remove(PeerFile("", filename))
+                networkViewModel.uploading.value = networkViewModel.uploading.value!!
+                pushProgressNotification(notificationID, "Uploaded file: $filename", "", R.drawable.ic_baseline_task_alt_24, 0, 0, false, context)}
         }
 
 
-        fun pushDownoadingNotification(filename : String, deviceName : String, packets : Int, progress : Int, pending : Boolean, context: Context){
+        fun pushDownloadingNotification(filename : String, deviceName : String, packets : Int, progress : Int, pending : Boolean, context: Context){
             val notificationID  : Int
             if(fileNotificationId[filename+deviceName] != null) notificationID = fileNotificationId[filename+deviceName]!!
             else {
@@ -99,8 +115,18 @@ class NotificationUtils {
                 fileNotificationId[filename+deviceName] = notificationID
                 runningNotificationId++
             }
-            if(packets != progress && packets != 0) pushProgressNotification(notificationID, "Downloading file: $filename", "File source: $deviceName", R.drawable.ic_baseline_download_24, packets, progress, pending, context)
-            else pushProgressNotification(notificationID, "Downloaded file: $filename", "File source: $deviceName", R.drawable.ic_baseline_task_alt_24, 0, 0, false, context)
+            if(packets != progress && (packets != 0 || pending)) {
+                if(networkViewModel.pendingDownloads.value!!.contains(PeerFile("", filename))) networkViewModel.pendingDownloads.value!!.remove(PeerFile("", filename))
+                if(!networkViewModel.downloading.value!!.contains(PeerFile("", filename))){ networkViewModel.downloading.value!!.add(PeerFile("", filename))
+                println("added to downloads!!!")
+                }
+                networkViewModel.pendingDownloads.value = networkViewModel.pendingDownloads.value!!
+                networkViewModel.downloading.value = networkViewModel.downloading.value!!
+                pushProgressNotification(notificationID, "Downloading file: $filename", "", R.drawable.ic_baseline_download_24, packets, progress, pending, context)}
+            else {
+                if(networkViewModel.downloading.value!!.contains(PeerFile("", filename))) networkViewModel.downloading.value!!.remove(PeerFile("", filename))
+                networkViewModel.downloading.value = networkViewModel.downloading.value!!
+                pushProgressNotification(notificationID, "Downloaded file: $filename", "", R.drawable.ic_baseline_task_alt_24, 0, 0, false, context)}
         }
 
     }

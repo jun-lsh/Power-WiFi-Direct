@@ -42,9 +42,6 @@ import java.util.concurrent.TimeUnit;
 public class SocketManager implements Runnable {
 
     private static final int MAXMESSSAGELENGTH = 65535;
-    private static final int BYTEMASK = 0xff;
-    private static final int SHORTMASK = 0xffff;
-    private static final int BYTESHIFT = 8;
 
     private static final byte[] byteDelim  = new byte[]{(byte) 0xFE,(byte) 0xFE,(byte) 0xFE};
 
@@ -56,15 +53,12 @@ public class SocketManager implements Runnable {
     private Context context;
     private int cumBytesRec = 0;
 
-    private byte[] aByte = new byte[1];
-
     private final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(4);
     private final ExecutorService executorService = Executors.newFixedThreadPool(1, runnable -> {
         Thread thread = new Thread(runnable);
         thread.setPriority(7);
         return thread;
     });
-
 
     public SocketManager(Socket socket, Handler handler, String side, Context context) {
         this.socket = socket;
@@ -191,10 +185,11 @@ public class SocketManager implements Runnable {
         try {
             int fileSize = (int) Math.ceil(file.length() / 65535.0);
             int cumRc = 0;
+
             FileInputStream inputStream = new FileInputStream(file.getAbsolutePath());
             try {
                 int rc;
-                while((rc = inputStream.read(buffer)) > 0){
+                while((rc = inputStream.read(buffer)) > -1){
                     cumRc += rc;
                     byte[] block = new byte[rc];
                     System.arraycopy(buffer, 0, block, 0, rc);
@@ -203,6 +198,7 @@ public class SocketManager implements Runnable {
                     write(block);
                 }
                 inputStream.close();
+                System.out.println("Completed file transfer!");
                 NotificationUtils.Companion.pushUploadingNotification(file.getName(), target, 0,0, false, context);
             } catch (IOException e) {
                 e.printStackTrace();

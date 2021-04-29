@@ -141,28 +141,32 @@
 
         <TextView
             android:id="@+id/history_textview"
+            style="@style/TextAppearanceTheme"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            style="@style/TextAppearanceTheme"
             android:text="@string/history"
             android:textSize="20sp"
-            app:layout_constraintTop_toBottomOf="@id/transfer_layout"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/transfer_layout" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
+            android:background="@color/white"
+            android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@id/history_textview"
-            android:background="@color/white"/>
+            tools:layout_editor_absoluteX="10dp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/history_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@+id/history_textview"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/history_textview" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

@@ -91,7 +91,8 @@ class SearchFragment : Fragment() {
 
         networkViewModel.fileList.observe(viewLifecycleOwner, {
             if(it.isNotEmpty()){
-                peerRecyclerAdapter.filteredPeers = it
+                allPeers = it
+                peerRecyclerAdapter.filteredPeers = allPeers
                 peerRecyclerAdapter.notifyDataSetChanged()
                 nofiles.visibility = GONE
             } else nofiles.visibility = VISIBLE

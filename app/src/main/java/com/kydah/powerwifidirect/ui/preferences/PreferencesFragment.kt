@@ -1,22 +1,17 @@
 package com.kydah.powerwifidirect.ui.preferences
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.kydah.powerwifidirect.R
 import com.kydah.powerwifidirect.networking.NetworkViewModel
+import com.kydah.powerwifidirect.ui.setfolders.SetFoldersDialog
 
 class PreferencesFragment : Fragment() {
 
@@ -62,6 +57,11 @@ class PrefFragment : PreferenceFragmentCompat(){
     override fun onPreferenceTreeClick(preference: Preference?): Boolean {
         when(preference?.key){
             "transmission_mode" -> {
+            }
+            "downloads_folder", "uploads_folder" -> {
+                requireActivity().supportFragmentManager.let{ it1 ->
+                    SetFoldersDialog(true).show(it1, "as_pop_up")
+                }
             }
         }
 

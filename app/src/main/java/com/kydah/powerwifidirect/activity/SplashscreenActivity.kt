@@ -14,7 +14,7 @@ import com.kydah.powerwifidirect.MainApplication
 import com.kydah.powerwifidirect.R
 import com.kydah.powerwifidirect.networking.model.LegacyPeer
 import com.kydah.powerwifidirect.networking.wifidirect.SoftAccessPoint
-import com.kydah.powerwifidirect.ui.firstlaunch.FirstLaunchFragment
+import com.kydah.powerwifidirect.ui.setfolders.SetFoldersDialog
 import java.io.File
 import kotlin.properties.Delegates
 
@@ -233,7 +233,7 @@ class SplashscreenActivity : AppCompatActivity(), RequiresPermissions, DialogInt
             val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
             if(!sharedPrefs.getBoolean("set_folders", false)){
                 supportFragmentManager.let{ it1 ->
-                    FirstLaunchFragment().show(it1, "as_pop_up")
+                    SetFoldersDialog(false).show(it1, "as_pop_up")
                 }
             } else {
                 application.downloadsFolder = File(sharedPrefs.getString("downloads_folder", ""))

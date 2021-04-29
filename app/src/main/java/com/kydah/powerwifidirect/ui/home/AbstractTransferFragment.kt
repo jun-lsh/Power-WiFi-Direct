@@ -19,6 +19,10 @@ abstract class AbstractTransferFragment: Fragment() {
     private lateinit var noTransferringFilesNotice: TextView
     private lateinit var noPendingFilesNotice: TextView
 
+    private lateinit var transferAdapter : PeerRecyclerAdapter
+    private lateinit var pendingAdapter : PeerRecyclerAdapter
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -29,20 +33,18 @@ abstract class AbstractTransferFragment: Fragment() {
         // Transferring recycler view init
         transferringRecyclerView = root.findViewById(R.id.transferring_recycler_view)
         transferringRecyclerView.layoutManager = LinearLayoutManager(context)
-        val transferringRecyclerAdapter = PeerRecyclerAdapter(true)
-        transferringRecyclerView.adapter = transferringRecyclerAdapter
+        transferAdapter = PeerRecyclerAdapter(false)
+        transferringRecyclerView.adapter = transferAdapter
 
         noTransferringFilesNotice = root.findViewById(R.id.no_transferring_files)
-        fillTransferringRecyclerAdapter(transferringRecyclerAdapter)
 
         // Pending recycler view init
         pendingRecyclerView = root.findViewById(R.id.pending_recycler_view)
         pendingRecyclerView.layoutManager = LinearLayoutManager(context)
-        val pendingRecyclerAdapter = PeerRecyclerAdapter(false)
-        pendingRecyclerView.adapter = pendingRecyclerAdapter
+        pendingAdapter = PeerRecyclerAdapter(false)
+        pendingRecyclerView.adapter = pendingAdapter
 
         noPendingFilesNotice = root.findViewById(R.id.no_pending_files)
-        fillPendingRecyclerAdapter(pendingRecyclerAdapter)
 
         return root
     }
@@ -52,12 +54,12 @@ abstract class AbstractTransferFragment: Fragment() {
         container: ViewGroup?
     ): View
 
-    private fun fillTransferringRecyclerAdapter(recyclerAdapter: PeerRecyclerAdapter) {
-        recyclerAdapter.peers = fillTransferringRecyclerAdapter()
-        recyclerAdapter.notifyDataSetChanged()
+    protected fun fillTransferringRecyclerAdapter(peerFiles : ArrayList<PeerFile>) {
+        transferAdapter.peers = peerFiles
+        transferAdapter.notifyDataSetChanged()
 
         // Show no uploading files if recycler adapter is empty
-        if (recyclerAdapter.itemCount == 0) {
+        if (transferAdapter.itemCount == 0) {
             transferringRecyclerView.visibility = View.GONE
             noTransferringFilesNotice.visibility = View.VISIBLE
         }
@@ -67,15 +69,12 @@ abstract class AbstractTransferFragment: Fragment() {
         }
     }
 
-    abstract fun fillTransferringRecyclerAdapter(): ArrayList<PeerFile>
-
-    private fun fillPendingRecyclerAdapter(recyclerAdapter: PeerRecyclerAdapter) {
-        val peers = arrayListOf<PeerFile>()
-        recyclerAdapter.peers = peers
-        recyclerAdapter.notifyDataSetChanged()
+    protected fun fillPendingRecyclerAdapter(peerFiles : ArrayList<PeerFile>) {
+        pendingAdapter.peers = peerFiles
+        pendingAdapter.notifyDataSetChanged()
 
         // Show no pending files if recycler adapter is empty
-        if (recyclerAdapter.itemCount == 0) {
+        if (pendingAdapter.itemCount == 0) {
             pendingRecyclerView.visibility = View.GONE
             noPendingFilesNotice.visibility = View.VISIBLE
         }
@@ -85,5 +84,4 @@ abstract class AbstractTransferFragment: Fragment() {
         }
     }
 
-    abstract fun fillPendingRecyclerAdapter(): ArrayList<PeerFile>
 }

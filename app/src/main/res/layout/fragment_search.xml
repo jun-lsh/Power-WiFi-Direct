@@ -92,6 +92,7 @@
         android:layout_marginBottom="70dp"
         android:contentDescription="@string/go_to_requests_list"
         android:src="@drawable/ic_mail"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

@@ -47,5 +47,17 @@ class NetworkViewModel : ViewModel(){
         MutableLiveData<ArrayList<PeerFile>>()
     }
 
+    val downloading : MutableLiveData<ArrayList<PeerFile>> by lazy {
+        MutableLiveData<ArrayList<PeerFile>>(ArrayList())
+    }
+    val pendingDownloads : MutableLiveData<ArrayList<PeerFile>> by lazy {
+        MutableLiveData<ArrayList<PeerFile>>(ArrayList())
+    }
+    val uploading : MutableLiveData<ArrayList<PeerFile>> by lazy {
+        MutableLiveData<ArrayList<PeerFile>>(ArrayList())
+    }
+    val pendingUploads : MutableLiveData<ArrayList<PeerFile>> by lazy {
+        MutableLiveData<ArrayList<PeerFile>>(ArrayList())
+    }
 
 }

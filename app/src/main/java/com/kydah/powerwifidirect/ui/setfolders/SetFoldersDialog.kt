@@ -1,37 +1,29 @@
-package com.kydah.powerwifidirect.ui.firstlaunch
+package com.kydah.powerwifidirect.ui.setfolders
 
 import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
-import android.net.Uri
 import android.os.Bundle
 import android.provider.DocumentsContract
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.kydah.powerwifidirect.MainApplication
 import com.kydah.powerwifidirect.R
-import com.kydah.powerwifidirect.networking.NetworkViewModel
 import com.kydah.powerwifidirect.utils.FileUtils
-import org.w3c.dom.Text
 import java.io.File
 
-import kotlin.properties.Delegates
-
-class FirstLaunchFragment  : DialogFragment(){
+class SetFoldersDialog(private var setAgain : Boolean)  : DialogFragment(){
 
     private lateinit var folderType : String
     private lateinit var intent : Intent
@@ -39,7 +31,6 @@ class FirstLaunchFragment  : DialogFragment(){
 
 
     private lateinit var sharedPrefs : SharedPreferences
-
     private lateinit var mainApplication: MainApplication
 
     //private val networkViewModel : NetworkViewModel by activityViewModels()
@@ -50,7 +41,7 @@ class FirstLaunchFragment  : DialogFragment(){
             savedInstanceState: Bundle?
     ): View? {
 
-        val root = inflater.inflate(R.layout.fragment_first_launch, container, false)
+        val root = inflater.inflate(R.layout.fragment_set_folders, container, false)
         mainApplication = activity?.applicationContext as MainApplication
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context)
         intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
@@ -92,6 +83,10 @@ class FirstLaunchFragment  : DialogFragment(){
         val uploadsPath : TextView = view.findViewById(R.id.uploadsPath)
 
         //proceedButton.isEnabled = false
+
+        if(setAgain){
+            view.findViewById<LinearLayout>(R.id.firstLaunchText).visibility = GONE
+        }
 
         proceedButton.setOnClickListener {
 
